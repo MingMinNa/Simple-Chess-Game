@@ -55,12 +55,12 @@ def cli_choose_chessman_and_moves(chess_game):
 
 def cli_choose_promotion(chess_game, pawn_chessman):
 
-    chessman_type_class = (None, Queen, Rook, Bishop, Knight, None)
+    chessman_type_classes = (None, Queen, Rook, Bishop, Knight, None)
     while True:
         choice = input("Please input a new chessman type in the list [\"Queen\", \"Rook\", \"Bishop\", \"Knight\"]: ").strip()
 
         # Note: CHESSMAN_TYPE_NAMES = ("King", "Queen", "Rook", "Bishop", "Knight", "Pawn")
         if choice not in CHESSMAN_TYPE_NAMES[1:5]: continue
 
-        chess_game.promotion(pawn_chessman, chessman_type_class[CHESSMAN_TYPE_NAMES.index(choice)])
+        chess_game.promotion(pawn_chessman, chessman_type_classes[CHESSMAN_TYPE_NAMES.index(choice)])
         break

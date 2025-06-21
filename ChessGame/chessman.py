@@ -426,7 +426,14 @@ class Pawn(BaseChessman):
         else:
             valid, next_pos = calc_position(self.get_pos(), self.__advance_direction, 0)
 
-            if valid and board[next_pos[0]][next_pos[1]] is None: valid_moves.add(("Move", next_pos))
+            if valid and board[next_pos[0]][next_pos[1]] is None: 
+                
+                if (self.get_team() == Team.WHITE and next_pos[0] == ROW_VALUE_RANGE[-1]) or \
+                   (self.get_team() == Team.BLACK and next_pos[0] == ROW_VALUE_RANGE[0]):
+                    valid_moves.add(("Promotion", next_pos))
+                else:
+                    valid_moves.add(("Move", next_pos))
+                
 
         
         # add en_passant moves

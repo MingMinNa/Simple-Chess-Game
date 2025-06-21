@@ -20,10 +20,10 @@ def main():
         elif state == GameState.PROMOTION:
             cli_choose_promotion(chess_game, chosen_chessman)
 
+        chess_game.next_turn()
+        
         if chess_game.is_check():
             print("Check !!")
-
-        chess_game.next_turn()
     
     print(f"End, the winner is {chess_game.get_winner().name.title()}")
     

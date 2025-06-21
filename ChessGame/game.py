@@ -86,13 +86,15 @@ class ChessGame:
         self.__chess_board.print_text_board()
 
     def is_check(self):
-        team_attack_area = get_all_team_attack_area(self.get_current_turn(), self.get_entire_board())
+
+        enemy_team = Team.BLACK if self.get_current_turn() == Team.WHITE else Team.WHITE
+        team_attack_area = get_all_team_attack_area(enemy_team, self.get_entire_board())
 
         for pos in team_attack_area:
             pos_chessman = self.get_chessman(pos[0], pos[1])
 
             if isinstance(pos_chessman, King) and \
-                pos_chessman.get_team() != self.get_current_turn():
+                pos_chessman.get_team() == self.get_current_turn():
                 return True
             
         return False

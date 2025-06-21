@@ -1,5 +1,4 @@
-
-
+import os
 
 # row value range:    [1, 8]
 # column value range: ['a', 'h']
@@ -15,3 +14,7 @@ CASTLING_POS = (
     (8, 'g'),   # black short castling
     (8, 'c')    # black long  castling
 )
+
+PROJECT_FOLDER = os.path.dirname(os.path.dirname(__file__))
+AUDIO_FOLDER = os.path.join(PROJECT_FOLDER, "assets", "audio")
+IMAGE_FOLDER = os.path.join(PROJECT_FOLDER, "assets", "image")
