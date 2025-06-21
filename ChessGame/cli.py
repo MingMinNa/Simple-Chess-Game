@@ -1,5 +1,9 @@
 
-from ChessGame import *
+
+from .const import *
+from .chessman import *
+from .board import *
+from .game import *
 
 def read_valid_cell():
 
@@ -18,7 +22,7 @@ def read_valid_cell():
 
     return True, row, col
 
-def choose_chessman_and_moves(chess_game):
+def cli_choose_chessman_and_moves(chess_game):
     
     print("\n---- [Chose Chessman] ----")
     while True:
@@ -49,7 +53,7 @@ def choose_chessman_and_moves(chess_game):
             if pos in moves_pos: return chosen_chessman, pos
             else:                print(f"\nInvalid Move {pos} \n")
 
-def choose_promotion_chessman_type(chess_game, pawn_chessman):
+def cli_choose_promotion(chess_game, pawn_chessman):
 
     chessman_type_class = (None, Queen, Rook, Bishop, Knight, None)
     while True:
@@ -60,50 +64,3 @@ def choose_promotion_chessman_type(chess_game, pawn_chessman):
 
         chess_game.promotion(pawn_chessman, chessman_type_class[CHESSMAN_TYPE_NAMES.index(choice)])
         break
-
-def is_check(chess_game):
-    team_attack_area = get_all_team_attack_area(chess_game.get_current_turn(), chess_game.get_entire_board())
-
-    for pos in team_attack_area:
-        pos_chessman = chess_game.get_chessman(pos[0], pos[1])
-
-        if isinstance(pos_chessman, King) and \
-           pos_chessman.get_team() != chess_game.get_current_turn():
-           return True
-        
-    return False
-
-def main():
-    chess_game = ChessGame()
-
-    while not chess_game.get_game_end():
-
-        # Show the board 
-        chess_game.show_board()
-        print(f"Current Turn: {chess_game.get_current_turn().name.title()}")
-
-        # choose the chessman and the move
-        chosen_chessman, chosen_move = choose_chessman_and_moves(chess_game)
-        
-        state = chess_game.chessman_move(chosen_chessman, chosen_move)
-
-        if state == GameState.END:  break
-        elif state == GameState.PROMOTION:
-            choose_promotion_chessman_type(chess_game, chosen_chessman)
-
-        if is_check(chess_game):
-            print("Check !!")
-
-        chess_game.next_turn()
-    
-    print(f"End, the winner is {chess_game.get_winner().name.title()}")
-    
-    dead_chessmen = chess_game.get_dead_chessmen()
-
-    for team in (Team.WHITE, Team.BLACK):
-        print(f"[{team.name.title()}] dead chessmen: {dead_chessmen[team.name.title()]}")
-        
-    return 
-
-if __name__ == "__main__":
-    main()
