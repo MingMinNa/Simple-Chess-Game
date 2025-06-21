@@ -58,8 +58,10 @@ class ChessGame:
         self.__chess_board.promotion(target_pawn, new_chessman_type)
 
     def chessman_move(self, target_chessman, dest_pos):
-        
+        source_pos = target_chessman.get_pos()
         case, killed_enemy = self.__chess_board.chessman_move(target_chessman, dest_pos)
+        
+        self.__record.append((type(target_chessman).__name__, source_pos, dest_pos, case))
         
         if killed_enemy is not None:
             if killed_enemy.get_team() == Team.WHITE: self.__dead_white_count[f"{type(killed_enemy).__name__}"] += 1
@@ -82,3 +84,15 @@ class ChessGame:
     
     def show_board(self):
         self.__chess_board.print_text_board()
+
+    def is_check(self):
+        team_attack_area = get_all_team_attack_area(self.get_current_turn(), self.get_entire_board())
+
+        for pos in team_attack_area:
+            pos_chessman = self.get_chessman(pos[0], pos[1])
+
+            if isinstance(pos_chessman, King) and \
+                pos_chessman.get_team() != self.get_current_turn():
+                return True
+            
+        return False
