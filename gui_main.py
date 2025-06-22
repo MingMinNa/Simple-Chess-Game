@@ -4,7 +4,7 @@ from ChessGame import *
 from ChessGame.gui import *
 
 def main():
-    pygame_init()
+    init_pygame()
     while True:
         gui_state = main_screen_state()
         if gui_state == GuiState.QUIT: break

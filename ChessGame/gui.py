@@ -9,13 +9,15 @@ from .game import *
 
 
 # windows constants
-INIT_WIDTH, INIT_HEIGHT = 700, 550
-WIDTH, HEIGHT = 700, 700 
-PANEL_WIDTH, PANEL_HEIGHT = 400, 250
-CHESSMAN_SIDE_LENGTH = 60
-CELL_SIDE_LENGTH = 80
-INIT_X, INIT_Y = 30, 30
-PANEL_INIT_X, PANEL_INIT_Y = 150, 225
+INIT_WIDTH,   INIT_HEIGHT    = 700, 550
+WIDTH,        HEIGHT         = 700, 700 
+PANEL_WIDTH,  PANEL_HEIGHT   = 400, 250
+
+CHESSMAN_SIDE_LENGTH         = 60
+CELL_SIDE_LENGTH             = 80
+
+INIT_X,       INIT_Y         = 30, 30
+PANEL_INIT_X, PANEL_INIT_Y   = 150, 225
 
 FPS = 60
 
@@ -31,10 +33,10 @@ BLUE        = (30, 144, 255)
 
 BOARDCELL_COLORS = [GREEN, FRESH_GREEN]
 BACKGROUND_COLOR = BLACK
-ATTACK_COLOR = RED
-MOVE_COLOR = GRAY
-PROMOTION_COLOR = BLUE
-CASTLING_COLOR = YELLOW
+ATTACK_COLOR     = RED
+MOVE_COLOR       = GRAY
+PROMOTION_COLOR  = BLUE
+CASTLING_COLOR   = YELLOW
 
 
 class GuiState(Enum):
@@ -216,7 +218,6 @@ class PromotionPanel(pygame.sprite.Sprite):
         self.image = pygame.Surface((PANEL_WIDTH, PANEL_HEIGHT))
         self.image.fill(GRAY)
         self.rect = self.image.get_rect()
-        self.rect = self.image.get_rect()
         self.rect.x = PANEL_INIT_X
         self.rect.y = PANEL_INIT_Y
 
@@ -241,8 +242,6 @@ class PromotionPanel(pygame.sprite.Sprite):
         self.chessman_sprite.draw(screen)
         pygame.draw.rect(self.image, BLACK, self.image.get_rect(), 1)
 
-
-
 # Load assets
 scaled_icon = None
 scaled_background = None
@@ -265,16 +264,7 @@ def load_assets():
         for type_name in CHESSMAN_TYPE_NAMES:
             chessman_images[team][type_name] = pygame.image.load(os.path.join(IMAGE_FOLDER, "chessman", f"{type_name.title()}_{team.name.lower()}.png")).convert()
 
-def pygame_init():
-    pygame.init()
-    pygame.display.set_caption("Simple Chess Game")
-    screen = pygame.display.set_mode((INIT_WIDTH, INIT_HEIGHT))
-    clock = pygame.time.Clock()
-    clock.tick(FPS)
-    load_assets()
-    return
-
-def screen_draw_text(screen: "pygame.Surface", text: str, center_x: int, center_y: int, fontSize: int, Fontcolor: tuple[int], background_color = None) -> None:
+def draw_text(screen: "pygame.Surface", text: str, center_x: int, center_y: int, fontSize: int, Fontcolor: tuple[int], background_color = None) -> None:
 
     font = pygame.font.Font(None, fontSize)
     text_surface = font.render(f"{text}", True, Fontcolor)
@@ -291,42 +281,6 @@ def draw_promotion_panel(current_turn):
     panel = PromotionPanel(current_turn, chessman_images)
     panel_sprite.add(panel)
     return panel, panel_sprite
-
-def main_screen_state():
-    
-    pygame.display.set_icon(scaled_icon)
-    screen = pygame.display.set_mode((INIT_WIDTH, INIT_HEIGHT))
-    clock = pygame.time.Clock()
-    clock.tick(FPS)
-    screen.blit(scaled_background, (0, 0))
-
-    screen_draw_text(screen, "Chess Game",        INIT_WIDTH // 2,     INIT_HEIGHT // 2 - 80,       100,  BLACK) # text "Chess Game" shadow
-    screen_draw_text(screen, "Press any to play", INIT_WIDTH // 2,     INIT_HEIGHT // 2 + 20,       70,   BLACK) # text "Press any to play" shadow
-    screen_draw_text(screen, "Chess Game",        INIT_WIDTH // 2 + 3, INIT_HEIGHT // 2 - 80 + 3,   100,  WHITE) 
-    screen_draw_text(screen, "Press any to play", INIT_WIDTH // 2 + 3, INIT_HEIGHT // 2 + 20 + 3,   70,   WHITE) 
-    pygame.display.update()
-
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                return GuiState.QUIT
-            elif event.type == pygame.KEYUP and event.key != pygame.K_ESCAPE:
-                return GuiState.GAME
-
-def init_chessman_display(chess_game):
-    chessman_bind = dict()
-    chessman_sprite = pygame.sprite.Group()
-
-    for row in ROW_VALUE_RANGE:
-        for col in COL_VALUE_RANGE:
-            chessman = chess_game.get_chessman(row, col)
-            if chessman is not None:
-                cell_x, cell_y = GuiChessman.calc_cell_x_y(row, col, chess_game.get_current_turn())
-                gui_chessman = GuiChessman(cell_x, cell_y, chessman.get_team(), chessman_images[chessman.get_team()][type(chessman).__name__])
-                chessman_bind[chessman] = gui_chessman
-                chessman_sprite.add(gui_chessman)
-    
-    return chessman_bind, chessman_sprite
 
 def gui_choose_chessman(chess_game, gui_board, chessman_bind, cell_x, cell_y):
     
@@ -388,6 +342,70 @@ def gui_choose_promotion(panel, mouse_pos, pawn_chessman, chess_game, gui_board,
 
     return GuiState.NEXT_TURN
 
+def gui_game_end(chess_game, screen):
+    end_panel = pygame.Surface((PANEL_WIDTH, PANEL_HEIGHT))
+    end_panel_rect = end_panel.get_rect()
+    end_panel_rect.center = (350, 350)
+    end_panel.fill(GRAY)
+    pygame.draw.rect(end_panel, BLACK, end_panel.get_rect(), 1)
+    screen.blit(end_panel, end_panel_rect)
+    foreground_color = WHITE if chess_game.get_winner() == Team.WHITE else BLACK
+    draw_text(screen, f"Winner: {chess_game.get_winner().name.title()}", 350, 330, 75, foreground_color)
+    draw_text(screen, f"Press any to continue", 350, 390, 40, foreground_color)
+    pygame.display.update()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return GuiState.QUIT
+            elif event.type == pygame.KEYUP:
+                return GuiState.MAIN
+
+def init_pygame():
+    pygame.init()
+    pygame.display.set_caption("Simple Chess Game")
+    screen = pygame.display.set_mode((INIT_WIDTH, INIT_HEIGHT))
+    clock = pygame.time.Clock()
+    clock.tick(FPS)
+    load_assets()
+    return
+
+def init_chessman_display(chess_game):
+    chessman_bind = dict()
+    chessman_sprite = pygame.sprite.Group()
+
+    for row in ROW_VALUE_RANGE:
+        for col in COL_VALUE_RANGE:
+            chessman = chess_game.get_chessman(row, col)
+            if chessman is not None:
+                cell_x, cell_y = GuiChessman.calc_cell_x_y(row, col, chess_game.get_current_turn())
+                gui_chessman = GuiChessman(cell_x, cell_y, chessman.get_team(), chessman_images[chessman.get_team()][type(chessman).__name__])
+                chessman_bind[chessman] = gui_chessman
+                chessman_sprite.add(gui_chessman)
+    
+    return chessman_bind, chessman_sprite
+
+def main_screen_state():
+    
+    pygame.display.set_icon(scaled_icon)
+    screen = pygame.display.set_mode((INIT_WIDTH, INIT_HEIGHT))
+    clock = pygame.time.Clock()
+    clock.tick(FPS)
+    screen.blit(scaled_background, (0, 0))
+
+    draw_text(screen, "Chess Game",        INIT_WIDTH // 2,     INIT_HEIGHT // 2 - 80,       100,  BLACK) # text "Chess Game" shadow
+    draw_text(screen, "Press any to play", INIT_WIDTH // 2,     INIT_HEIGHT // 2 + 20,       70,   BLACK) # text "Press any to play" shadow
+    draw_text(screen, "Chess Game",        INIT_WIDTH // 2 + 3, INIT_HEIGHT // 2 - 80 + 3,   100,  WHITE) 
+    draw_text(screen, "Press any to play", INIT_WIDTH // 2 + 3, INIT_HEIGHT // 2 + 20 + 3,   70,   WHITE) 
+    pygame.display.update()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return GuiState.QUIT
+            elif event.type == pygame.KEYUP and event.key != pygame.K_ESCAPE:
+                return GuiState.GAME
+
 def game_state():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     screen.fill(BACKGROUND_COLOR)
@@ -435,12 +453,12 @@ def game_state():
                     gui_board.refresh_board(chess_game.get_current_turn())
                     GuiChessman.repaint_chessmen(chess_game, chessman_bind)
                     gui_state = GuiState.CHESSMAN_CHOOSE
-        screen_draw_text(screen, f"Turn: {chess_game.get_current_turn().name.title()}   ", 100, 15, 30, GRAY, BACKGROUND_COLOR)
-        screen_draw_text(screen, f"Press Esc to exit ", 600, 15, 30, GRAY, BACKGROUND_COLOR)
+        draw_text(screen, f"Turn: {chess_game.get_current_turn().name.title()}   ", 100, 15, 30, GRAY, BACKGROUND_COLOR)
+        draw_text(screen, f"Press Esc to exit ", 600, 15, 30, GRAY, BACKGROUND_COLOR)
 
         if chess_game.is_check():
-                screen_draw_text(screen, "Check", 350, 15, 30, RED,              BACKGROUND_COLOR)
-        else:   screen_draw_text(screen, "Check", 350, 15, 30, BACKGROUND_COLOR, BACKGROUND_COLOR)
+                draw_text(screen, "Check", 350, 15, 30, RED,              BACKGROUND_COLOR)
+        else:   draw_text(screen, "Check", 350, 15, 30, BACKGROUND_COLOR, BACKGROUND_COLOR)
         
         gui_board.get_bordcell_sprite().draw(screen)
         chessman_sprite.draw(screen)
@@ -448,7 +466,9 @@ def game_state():
             panel.draw(panel_sprite, screen)
         pygame.display.update()
         
-        if gui_state == GuiState.END:   break
+        if gui_state == GuiState.END:  break
+    
+    return gui_game_end(chess_game, screen)
 
 
 
