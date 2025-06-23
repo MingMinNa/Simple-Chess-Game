@@ -155,6 +155,7 @@ class GuiBoardCell(pygame.sprite.Sprite):
     def set_color(self, color):
         self.image.fill(color)
         pygame.draw.rect(self.image, BLACK, self.image.get_rect(), 1)
+    
 
 class GuiBoard:
     
@@ -181,7 +182,7 @@ class GuiBoard:
             color_idx = i % 2
             for j in range(len(COL_VALUE_RANGE)):
                 self.board[i][j].set_color(BOARDCELL_COLORS[(color_idx + j) % 2])
-
+        
     def paint_move_area(self, current_turn, valid_moves):
         
         for action, pos in valid_moves:
@@ -196,6 +197,20 @@ class GuiBoard:
             elif action == "Castling":
                 self.board[cell_y][cell_x].set_color(CASTLING_COLOR)
     
+    def draw_board(self, screen, current_turn):
+        self.get_bordcell_sprite().draw(screen)
+
+        if current_turn == Team.WHITE: order = 1
+        else:                          order = -1
+
+        row_index_start_pos = (INIT_X + 8, INIT_Y + CELL_SIDE_LENGTH * 7 + 10)
+        for i, row_index in enumerate(ROW_VALUE_RANGE[::order]):
+            draw_text(screen, f"{row_index}", row_index_start_pos[0], row_index_start_pos[1] - CELL_SIDE_LENGTH * i, 25, GREEN if i % 2 == 0 else FRESH_GREEN)
+
+        col_index_start_pos = (INIT_X + CELL_SIDE_LENGTH - 8, INIT_Y + CELL_SIDE_LENGTH * 8 - 10)
+        for i, col_index in enumerate(COL_VALUE_RANGE[::order]):
+            draw_text(screen, f"{col_index}", col_index_start_pos[0] + CELL_SIDE_LENGTH * i, col_index_start_pos[1], 25, GREEN if i % 2 == 0 else FRESH_GREEN)
+
     def get_bordcell_sprite(self):
         return self.boardcell_sprite
 
@@ -341,11 +356,12 @@ def gui_choose_promotion(panel, mouse_pos, pawn_chessman, chess_game, gui_board,
 
     return GuiState.NEXT_TURN
 
-def gui_game_end(chess_game, screen):
+def gui_game_end(chess_game, screen, gui_board, chessman_sprite):
     end_panel = pygame.Surface((PANEL_WIDTH, PANEL_HEIGHT))
     end_panel_rect = end_panel.get_rect()
     end_panel_rect.center = (350, 350)
     end_panel.fill(GRAY)
+
     pygame.draw.rect(end_panel, BLACK, end_panel.get_rect(), 1)
     screen.blit(end_panel, end_panel_rect)
     foreground_color = WHITE if chess_game.get_winner() == Team.WHITE else BLACK
@@ -357,7 +373,18 @@ def gui_game_end(chess_game, screen):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return GuiState.QUIT
-            elif event.type == pygame.KEYUP:
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
+                # hide the end panel
+                gui_board.draw_board(screen, chess_game.get_current_turn())
+                chessman_sprite.draw(screen)
+                pygame.display.update()
+            elif event.type == pygame.KEYUP and event.key == pygame.K_TAB:
+                pygame.draw.rect(end_panel, BLACK, end_panel.get_rect(), 1)
+                screen.blit(end_panel, end_panel_rect)
+                draw_text(screen, f"Winner: {chess_game.get_winner().name.title()}", 350, 330, 75, foreground_color)
+                draw_text(screen, f"Press any to continue", 350, 390, 40, foreground_color)
+                pygame.display.update()
+            elif event.type == pygame.KEYUP and event.key != pygame.K_TAB:
                 return GuiState.MAIN
 
 def init_pygame():
@@ -466,11 +493,11 @@ def game_state():
         elif chess_game.get_in_check():
             draw_text(screen, "Check", 350, 15, 30, RED, BACKGROUND_COLOR)
         
-        gui_board.get_bordcell_sprite().draw(screen)
+        gui_board.draw_board(screen, chess_game.get_current_turn())
         chessman_sprite.draw(screen)
-        if panel is not None: panel.draw(panel_sprite, screen)
+        if panel is not None: panel.draw(panel_sprite, screen)  # promotion panel
         pygame.display.update()
         
         if gui_state == GuiState.END:  break
     
-    return gui_game_end(chess_game, screen)
+    return gui_game_end(chess_game, screen, gui_board, chessman_sprite)
