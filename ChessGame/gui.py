@@ -3,40 +3,12 @@ import pygame
 
 from enum import Enum, auto
 from .const import *
-from .chessman import *
-from .board import *
-from .game import *
-
-
-# windows constants
-INIT_WIDTH,   INIT_HEIGHT    = 700, 550
-WIDTH,        HEIGHT         = 700, 700 
-PANEL_WIDTH,  PANEL_HEIGHT   = 400, 250
-
-CHESSMAN_SIDE_LENGTH         = 60
-CELL_SIDE_LENGTH             = 80
-
-INIT_X,       INIT_Y         = 30, 30
-PANEL_INIT_X, PANEL_INIT_Y   = 150, 225
-
-FPS = 60
-
-# color 
-WHITE       = (255, 255, 255)
-BLACK       = (0, 0, 0)
-GRAY        = (125, 125, 125)
-GREEN       = (0, 110, 0)
-FRESH_GREEN = (99,211,108)
-RED         = (255, 0, 0)
-YELLOW      = (240, 230, 140)
-BLUE        = (30, 144, 255)
-
-BOARDCELL_COLORS = [GREEN, FRESH_GREEN]
-BACKGROUND_COLOR = BLACK
-ATTACK_COLOR     = RED
-MOVE_COLOR       = GRAY
-PROMOTION_COLOR  = BLUE
-CASTLING_COLOR   = YELLOW
+from .component.chessman import *
+from .component.board import *
+from .component.game import *
+from .component.gui_chessman import *
+from .component.gui_board import *
+from .component.gui_panel import *
 
 
 class GuiState(Enum):
@@ -52,209 +24,6 @@ class GuiState(Enum):
     END = auto()
     NEXT_TURN = auto()
     PROMOTION = auto()
-
-class GuiChessmanState(Enum):
-    UP = auto()
-    DOWN = auto()
-
-class GuiChessman(pygame.sprite.Sprite):
-
-    @staticmethod
-    def repaint_chessmen(chess_game, chessman_bind):
-        for r in ROW_VALUE_RANGE:
-            for c in COL_VALUE_RANGE:
-                chessman = chess_game.get_chessman(r, c)
-                if chessman is not None:
-                    c_x, c_y = GuiChessman.calc_cell_x_y(r, c, chess_game.get_current_turn())
-                    chessman_bind[chessman].set_cell_x_y(c_x, c_y)  
-
-    @staticmethod
-    def calc_cell_x_y(row, col, current_turn):
-
-        if current_turn == Team.BLACK:
-            # (row, col) = (1, 'a') => (x, y) = (7, 0)
-            # (row, col) = (8, 'h') => (x, y) = (0, 7)
-            return (7 - COL_VALUE_RANGE.index(col), row - 1)
-        else:
-            # (row, col) = (1, 'a') => (x, y) = (0, 7)
-            # (row, col) = (8, 'h') => (x, y) = (7, 0)
-            return (COL_VALUE_RANGE.index(col), 7 - row + 1) 
-
-    @staticmethod
-    def calc_row_col(cell_x, cell_y, current_turn):
-        
-        def int_to_letter(col_idx):
-            if col_idx >= len(COL_VALUE_RANGE) or col_idx < 0: return "#" # error chars
-            return COL_VALUE_RANGE[col_idx]
-
-        if current_turn == Team.BLACK:
-            # (row, col) = (1, 'a') <= (x, y) = (7, 0)
-            # (row, col) = (8, 'h') <= (x, y) = (0, 7)
-            return (cell_y + 1, int_to_letter(7 - cell_x))
-        else:
-            # (row, col) = (1, 'a') <= (x, y) = (0, 7)
-            # (row, col) = (8, 'h') <= (x, y) = (7, 0)
-            return (8 - cell_y, int_to_letter(cell_x))
-
-    def __init__(self, cell_x: int, cell_y: int, team: Team, image):
-        
-        pygame.sprite.Sprite.__init__(self)
-
-        self.image = pygame.transform.scale(image, (CHESSMAN_SIDE_LENGTH, CHESSMAN_SIDE_LENGTH))
-        self.image.set_colorkey(RED)
-
-        self.team = team
-        self.cell_x = cell_x
-        self.cell_y = cell_y
-
-        # set the position
-        self.rect = self.image.get_rect()
-        self.rect.x = INIT_X + cell_x * CELL_SIDE_LENGTH + 10
-        self.rect.y = INIT_Y + cell_y * CELL_SIDE_LENGTH + 10
-
-        self.state = GuiChessmanState.DOWN
-
-    def click(self):
-        
-        if self.state == GuiChessmanState.DOWN: self.__up()
-        else:                                   self.__down()
-    
-    def __down(self):
-        if self.state == GuiChessmanState.UP:
-            self.rect.y += 10
-        self.state = GuiChessmanState.DOWN
-
-    def __up(self):
-        if self.state == GuiChessmanState.DOWN:
-            self.rect.y -= 10
-        self.state = GuiChessmanState.UP
-
-    def set_cell_x_y(self, cell_x, cell_y):
-        self.cell_x = cell_x
-        self.cell_y = cell_y
-
-        self.rect.x = INIT_X + cell_x * CELL_SIDE_LENGTH + 10
-        self.rect.y = INIT_Y + cell_y * CELL_SIDE_LENGTH + 10
-    
-    def get_cell_x_y(self):
-        return (self.cell_x, self.cell_y)
-
-class GuiBoardCell(pygame.sprite.Sprite):
-
-    def __init__(self, cell_x: int, cell_y: int, color) -> None:
-        pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface((CELL_SIDE_LENGTH, CELL_SIDE_LENGTH))
-        self.image.fill(color)
-        self.rect = self.image.get_rect()
-
-        pygame.draw.rect(self.image, BLACK, self.image.get_rect(), 1)
-
-        self.rect.x = INIT_X + CELL_SIDE_LENGTH * cell_x
-        self.rect.y = INIT_Y + CELL_SIDE_LENGTH * cell_y
-
-    def set_color(self, color):
-        self.image.fill(color)
-        pygame.draw.rect(self.image, BLACK, self.image.get_rect(), 1)
-    
-
-class GuiBoard:
-    
-    @staticmethod
-    def get_click_cell(pos):
-        return ((pos[0] - INIT_X) // CELL_SIDE_LENGTH, 
-                (pos[1] - INIT_Y) // CELL_SIDE_LENGTH)
-
-    def __init__(self):
-        self.board = list()
-        self.boardcell_sprite = pygame.sprite.Group()
-
-        for i in range(len(ROW_VALUE_RANGE)):
-            self.board.append(list())
-            color_idx = i % 2
-            for j in range(len(COL_VALUE_RANGE)):
-                cell = GuiBoardCell(j, i, BOARDCELL_COLORS[(color_idx + j) % 2])
-                self.board[i].append(cell)
-                self.boardcell_sprite.add(cell)
-
-    def refresh_board(self):
-
-        for i in range(len(ROW_VALUE_RANGE)):
-            color_idx = i % 2
-            for j in range(len(COL_VALUE_RANGE)):
-                self.board[i][j].set_color(BOARDCELL_COLORS[(color_idx + j) % 2])
-        
-    def paint_move_area(self, current_turn, valid_moves):
-        
-        for action, pos in valid_moves:
-            cell_x, cell_y = GuiChessman.calc_cell_x_y(pos[0], pos[1], current_turn)
-
-            if action == "Move":
-                self.board[cell_y][cell_x].set_color(MOVE_COLOR)
-            elif action == "Attack":
-                self.board[cell_y][cell_x].set_color(ATTACK_COLOR)
-            elif action == "Promotion":
-                self.board[cell_y][cell_x].set_color(PROMOTION_COLOR)
-            elif action == "Castling":
-                self.board[cell_y][cell_x].set_color(CASTLING_COLOR)
-    
-    def draw_board(self, screen, current_turn):
-        self.get_bordcell_sprite().draw(screen)
-
-        if current_turn == Team.WHITE: order = 1
-        else:                          order = -1
-
-        row_index_start_pos = (INIT_X + 8, INIT_Y + CELL_SIDE_LENGTH * 7 + 10)
-        for i, row_index in enumerate(ROW_VALUE_RANGE[::order]):
-            draw_text(screen, f"{row_index}", row_index_start_pos[0], row_index_start_pos[1] - CELL_SIDE_LENGTH * i, 25, GREEN if i % 2 == 0 else FRESH_GREEN)
-
-        col_index_start_pos = (INIT_X + CELL_SIDE_LENGTH - 8, INIT_Y + CELL_SIDE_LENGTH * 8 - 10)
-        for i, col_index in enumerate(COL_VALUE_RANGE[::order]):
-            draw_text(screen, f"{col_index}", col_index_start_pos[0] + CELL_SIDE_LENGTH * i, col_index_start_pos[1], 25, GREEN if i % 2 == 0 else FRESH_GREEN)
-
-    def get_bordcell_sprite(self):
-        return self.boardcell_sprite
-
-class PanelChessman(pygame.sprite.Sprite):
-
-    def __init__(self, x: int, y:int, team: Team, chessman_type_name:str, chessman_images) -> None:
-        pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.transform.scale(chessman_images[team][chessman_type_name], (CHESSMAN_SIDE_LENGTH, CHESSMAN_SIDE_LENGTH))
-        self.image.set_colorkey(RED)
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
-        self.name = chessman_type_name
-
-class PromotionPanel(pygame.sprite.Sprite):
-
-    def __init__(self, team: Team, chessman_images) -> None:
-        pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface((PANEL_WIDTH, PANEL_HEIGHT))
-        self.image.fill(GRAY)
-        self.rect = self.image.get_rect()
-        self.rect.x = PANEL_INIT_X
-        self.rect.y = PANEL_INIT_Y
-
-        self.chessman_types = list()
-        self.chessman_sprite = pygame.sprite.Group()
-
-        for i, chessman_type_name in enumerate(CHESSMAN_TYPE_NAMES[1: 5]):
-            panel_chessman = PanelChessman(170 + (100 * i), 320 , team, chessman_type_name, chessman_images)
-            self.chessman_sprite.add(panel_chessman)
-            self.chessman_types.append(panel_chessman)
-        
-    def choose(self, mouse_pos):
-
-        for chessman_type in self.chessman_types:
-            if chessman_type.rect.x <= mouse_pos[0] <= chessman_type.rect.x + CHESSMAN_SIDE_LENGTH and \
-               chessman_type.rect.y <= mouse_pos[1] <= chessman_type.rect.y + CHESSMAN_SIDE_LENGTH:
-                return chessman_type.name
-        return None
-    
-    def draw(self, sprite, screen):
-        sprite.draw(screen)
-        self.chessman_sprite.draw(screen)
-        pygame.draw.rect(self.image, BLACK, self.image.get_rect(), 1)
 
 # Load assets
 scaled_icon = None
@@ -277,24 +46,6 @@ def load_assets():
     for team in (Team.BLACK, Team.WHITE):
         for type_name in CHESSMAN_TYPE_NAMES:
             chessman_images[team][type_name] = pygame.image.load(os.path.join(IMAGE_FOLDER, "chessman", f"{type_name.title()}_{team.name.lower()}.png")).convert()
-
-def draw_text(screen: "pygame.Surface", text: str, center_x: int, center_y: int, fontSize: int, Fontcolor: tuple[int], background_color = None) -> None:
-
-    font = pygame.font.Font(None, fontSize)
-    text_surface = font.render(f"{text}", True, Fontcolor)
-    text_rect = text_surface.get_rect()
-    text_rect.center = (center_x, center_y)
-    if background_color: screen.fill(background_color, text_rect)
-    screen.blit(text_surface, text_rect)
-
-    return text_rect
-
-def draw_promotion_panel(current_turn):
-
-    panel_sprite = pygame.sprite.Group()
-    panel = PromotionPanel(current_turn, chessman_images)
-    panel_sprite.add(panel)
-    return panel, panel_sprite
 
 def gui_choose_chessman(chess_game, gui_board, chessman_bind, cell_x, cell_y):
     
@@ -464,7 +215,7 @@ def game_state():
                     gui_state = gui_choose_moves(chess_game, gui_board, chessman_bind, chessman_sprite, chosen_chessman, valid_moves, cell_x, cell_y)
 
                     if gui_state == GuiState.PROMOTION:
-                        panel, panel_sprite = draw_promotion_panel(chess_game.get_current_turn())
+                        panel, panel_sprite = draw_promotion_panel(chess_game.get_current_turn(), chessman_images)
                     if gui_state in [GuiState.PROMOTION, GuiState.NEXT_TURN]:
                         place_chessman_audio.play()
 

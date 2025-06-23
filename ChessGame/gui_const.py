@@ -1,0 +1,30 @@
+
+# windows constants
+INIT_WIDTH,   INIT_HEIGHT    = 700, 550
+WIDTH,        HEIGHT         = 700, 700 
+PANEL_WIDTH,  PANEL_HEIGHT   = 400, 250
+
+CHESSMAN_SIDE_LENGTH         = 60
+CELL_SIDE_LENGTH             = 80
+
+INIT_X,       INIT_Y         = 30, 30
+PANEL_INIT_X, PANEL_INIT_Y   = 150, 225
+
+FPS = 60
+
+# color 
+WHITE       = (255, 255, 255)
+BLACK       = (0, 0, 0)
+GRAY        = (125, 125, 125)
+GREEN       = (0, 110, 0)
+FRESH_GREEN = (99,211,108)
+RED         = (255, 0, 0)
+YELLOW      = (240, 230, 140)
+BLUE        = (30, 144, 255)
+
+BOARDCELL_COLORS = [GREEN, FRESH_GREEN]
+BACKGROUND_COLOR = BLACK
+ATTACK_COLOR     = RED
+MOVE_COLOR       = GRAY
+PROMOTION_COLOR  = BLUE
+CASTLING_COLOR   = YELLOW

@@ -1,5 +1,4 @@
-
 from .const import *
-from .chessman import *
-from .board import *
-from .game import *
+from .component.chessman import *
+from .component.board import *
+from .component.game import *

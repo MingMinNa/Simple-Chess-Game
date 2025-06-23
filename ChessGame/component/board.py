@@ -1,7 +1,7 @@
 from enum import Enum, auto
 from copy import deepcopy
-from .const import *
 from .chessman import *
+from ..const import *
 
 class SpecialMove(Enum):
     PROMOTION = auto()
@@ -92,7 +92,7 @@ class ChessBoard:
             raise ValueError
         
         chessman_moves = target_chessman.get_valid_moves(self.__board)
-
+        
         valid_moves = set()
         # make sure the moves that can't make the king attacked
         for action, pos in chessman_moves:

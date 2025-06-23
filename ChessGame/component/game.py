@@ -1,8 +1,7 @@
 from enum import Enum, auto
-from copy import deepcopy
-from .const import *
 from .board import *
 from .chessman import *
+from ..const import *
 
 class GameState(Enum):
     END = auto()

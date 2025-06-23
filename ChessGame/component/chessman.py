@@ -1,6 +1,6 @@
 from enum import Enum, auto
-from typing import override, overload
-from .const import *
+from typing import override
+from ..const import *
 
 
 
@@ -67,7 +67,7 @@ class BaseChessman:
         
         self.__current_row = next_row_pos
         self.__current_col = next_col_pos
-    
+
     def set_pos(self, next_pos: tuple[int, str]) -> None:
         self.__current_row = next_pos[0]
         self.__current_col = next_pos[1]
