@@ -1,4 +1,5 @@
 from enum import Enum, auto
+from copy import deepcopy
 from .const import *
 from .board import *
 from .chessman import *
@@ -18,6 +19,9 @@ class ChessGame:
         self.__record = list()
         self.__game_end = False
         self.__winner = None
+
+        self.__in_check = False
+        self.__checkmate = False
 
         for chessman_type_name in CHESSMAN_TYPE_NAMES:
             self.__dead_white_count[chessman_type_name] = 0
@@ -54,6 +58,12 @@ class ChessGame:
             "Black": self.__dead_black_count
         }
     
+    def get_in_check(self):
+        return self.__in_check
+
+    def get_checkmate(self):
+        return self.__checkmate
+
     def promotion(self, target_pawn, new_chessman_type):
         self.__chess_board.promotion(target_pawn, new_chessman_type)
 
@@ -85,16 +95,34 @@ class ChessGame:
     def show_board(self):
         self.__chess_board.print_text_board()
 
-    def is_check(self):
+    def update_in_check(self):
+        self.__in_check = ChessBoard.is_board_in_check(self.__chess_board, self.get_current_turn())
+    
+    def update_checkmate(self):
 
-        enemy_team = Team.BLACK if self.get_current_turn() == Team.WHITE else Team.WHITE
-        team_attack_area = get_all_team_attack_area(enemy_team, self.get_entire_board())
+        self.update_in_check()
+        if self.get_in_check() is False: 
+            self.__checkmate = False
+            return
 
-        for pos in team_attack_area:
-            pos_chessman = self.get_chessman(pos[0], pos[1])
+        for row in ROW_VALUE_RANGE:
+            for col in COL_VALUE_RANGE:
+                curr_chessman = self.get_chessman(row, col)
+                if curr_chessman is not None and \
+                   curr_chessman.get_team() == self.__current_turn:
+                    
+                    # try all the valid moves of the chessman
+                    valid_moves = self.get_valid_moves(curr_chessman)
+                    
+                    for action, pos in valid_moves:
+                        next_board = self.__chess_board.peak_move(curr_chessman, pos)
+                        in_check = ChessBoard.is_board_in_check(next_board, self.get_current_turn())
+                        del next_board
 
-            if isinstance(pos_chessman, King) and \
-                pos_chessman.get_team() == self.get_current_turn():
-                return True
-            
-        return False
+                        if not in_check:    
+                            self.__checkmate = False
+                            return
+
+        self.__checkmate = True
+        self.__winner = Team.BLACK if self.get_current_turn() == Team.WHITE else Team.WHITE 
+        return 

@@ -418,6 +418,7 @@ def game_state():
     valid_moves = None
 
     while True:
+        screen.fill(BACKGROUND_COLOR)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return GuiState.QUIT
@@ -449,25 +450,27 @@ def game_state():
                 
                 if gui_state == GuiState.NEXT_TURN:  
                     chess_game.next_turn()
-                    gui_board.refresh_board(chess_game.get_current_turn())
+                    gui_board.refresh_board()
                     GuiChessman.repaint_chessmen(chess_game, chessman_bind)
                     gui_state = GuiState.CHESSMAN_CHOOSE
-        draw_text(screen, f"Turn: {chess_game.get_current_turn().name.title()}   ", 100, 15, 30, GRAY, BACKGROUND_COLOR)
+
+                    chess_game.update_in_check()
+                    chess_game.update_checkmate()
+
+        draw_text(screen, f"Turn: {chess_game.get_current_turn().name.title()}", 100, 15, 30, GRAY, BACKGROUND_COLOR)
         draw_text(screen, f"Press Esc to exit ", 600, 15, 30, GRAY, BACKGROUND_COLOR)
 
-        if chess_game.is_check():
-                draw_text(screen, "Check", 350, 15, 30, RED,              BACKGROUND_COLOR)
-        else:   draw_text(screen, "Check", 350, 15, 30, BACKGROUND_COLOR, BACKGROUND_COLOR)
+        if chess_game.get_checkmate():
+            gui_state = GuiState.END
+            draw_text(screen, "Checkmate", 350, 15, 30, RED, BACKGROUND_COLOR)
+        elif chess_game.get_in_check():
+            draw_text(screen, "Check", 350, 15, 30, RED, BACKGROUND_COLOR)
         
         gui_board.get_bordcell_sprite().draw(screen)
         chessman_sprite.draw(screen)
-        if panel is not None: 
-            panel.draw(panel_sprite, screen)
+        if panel is not None: panel.draw(panel_sprite, screen)
         pygame.display.update()
         
         if gui_state == GuiState.END:  break
     
     return gui_game_end(chess_game, screen)
-
-
-

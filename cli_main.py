@@ -19,10 +19,14 @@ def main():
         if state == GameState.END:  break
         elif state == GameState.PROMOTION:
             cli_choose_promotion(chess_game, chosen_chessman)
-
+        chess_game.update_in_check()
+        chess_game.update_checkmate()
         chess_game.next_turn()
         
-        if chess_game.is_check():
+        if chess_game.get_checkmate():
+            print("Checkmate !!")
+            break
+        elif chess_game.get_in_check():
             print("Check !!")
     
     print(f"End, the winner is {chess_game.get_winner().name.title()}")

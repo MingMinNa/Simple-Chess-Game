@@ -1,4 +1,5 @@
 from enum import Enum, auto
+from copy import deepcopy
 from .const import *
 from .chessman import *
 
@@ -9,6 +10,21 @@ class SpecialMove(Enum):
     SHORT_CASTLING = auto()
 
 class ChessBoard:
+
+    @staticmethod
+    def is_board_in_check(board: "ChessBoard", team: Team):
+        
+        enemy_team = Team.BLACK if team == Team.WHITE else Team.WHITE
+        team_attack_area = get_all_team_attack_area(enemy_team, board.get_entire_board())
+
+        for pos in team_attack_area:
+            pos_chessman = board.get_chessman(pos[0], pos[1])
+
+            if isinstance(pos_chessman, King) and \
+                pos_chessman.get_team() == team:
+                return True
+            
+        return False
 
     def __init__(self):
         self.reset_board()
@@ -75,7 +91,16 @@ class ChessBoard:
         if self.__board[curr_row][curr_col] is not target_chessman:
             raise ValueError
         
-        return target_chessman.get_valid_moves(self.__board)
+        chessman_moves = target_chessman.get_valid_moves(self.__board)
+
+        valid_moves = set()
+        # make sure the moves that can't make the king attacked
+        for action, pos in chessman_moves:
+            next_board = self.peak_move(target_chessman, pos)
+
+            if not ChessBoard.is_board_in_check(next_board, target_chessman.get_team()):
+                valid_moves.add((action, pos))
+        return valid_moves
         
     def refresh_en_passant(self, turn: Team):
 
@@ -169,3 +194,10 @@ class ChessBoard:
         new_chessman.set_moved()
         self.__board[curr_pos[0]][curr_pos[1]] = new_chessman
 
+    def peak_move(self, target_chessman, dest_pos):
+
+        row, col = target_chessman.get_pos()
+        copied_chess_board = deepcopy(self)
+        copied_chess_board.chessman_move(copied_chess_board.get_chessman(row, col), dest_pos)
+
+        return copied_chess_board
