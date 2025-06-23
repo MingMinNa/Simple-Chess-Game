@@ -59,7 +59,6 @@ class GuiChessmanState(Enum):
 
 class GuiChessman(pygame.sprite.Sprite):
 
-    
     @staticmethod
     def repaint_chessmen(chess_game, chessman_bind):
         for r in ROW_VALUE_RANGE:
@@ -71,7 +70,7 @@ class GuiChessman(pygame.sprite.Sprite):
 
     @staticmethod
     def calc_cell_x_y(row, col, current_turn):
-        
+
         if current_turn == Team.BLACK:
             # (row, col) = (1, 'a') => (x, y) = (7, 0)
             # (row, col) = (8, 'h') => (x, y) = (0, 7)
@@ -83,7 +82,7 @@ class GuiChessman(pygame.sprite.Sprite):
 
     @staticmethod
     def calc_row_col(cell_x, cell_y, current_turn):
-
+        
         def int_to_letter(col_idx):
             if col_idx >= len(COL_VALUE_RANGE) or col_idx < 0: return "#" # error chars
             return COL_VALUE_RANGE[col_idx]
@@ -176,7 +175,7 @@ class GuiBoard:
                 self.board[i].append(cell)
                 self.boardcell_sprite.add(cell)
 
-    def refresh_board(self, current_turn):
+    def refresh_board(self):
 
         for i in range(len(ROW_VALUE_RANGE)):
             color_idx = i % 2
@@ -303,17 +302,17 @@ def gui_choose_moves(chess_game, gui_board, chessman_bind, chessman_sprite, chos
 
     if dest_pos not in {pos for _, pos in valid_moves}:
         chessman_bind[chosen_chessman].click()  # put down
-        gui_board.refresh_board(chess_game.get_current_turn())
+        gui_board.refresh_board()
         return GuiState.CHESSMAN_CHOOSE
-
-    dest_chessman = chess_game.get_chessman(row, col)
-    if dest_chessman is not None:
-        chessman_sprite.remove(chessman_bind[dest_chessman])
-        del chessman_bind[dest_chessman]
     
-    game_state = chess_game.chessman_move(chosen_chessman, dest_pos)    
+    game_state, killed_enemy = chess_game.chessman_move(chosen_chessman, dest_pos)    
+    
+    if killed_enemy is not None:
+        chessman_sprite.remove(chessman_bind[killed_enemy])
+        del chessman_bind[killed_enemy]
+        
     chessman_bind[chosen_chessman].click()  # put down
-    gui_board.refresh_board(chess_game.get_current_turn())
+    gui_board.refresh_board()
 
     GuiChessman.repaint_chessmen(chess_game, chessman_bind)
 

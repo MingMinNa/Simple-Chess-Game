@@ -14,7 +14,7 @@ def main():
         # choose the chessman and the move
         chosen_chessman, chosen_move = cli_choose_chessman_and_moves(chess_game)
         
-        state = chess_game.chessman_move(chosen_chessman, chosen_move)
+        state, _ = chess_game.chessman_move(chosen_chessman, chosen_move)
 
         if state == GameState.END:  break
         elif state == GameState.PROMOTION:

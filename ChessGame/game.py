@@ -65,22 +65,22 @@ class ChessGame:
         
         if killed_enemy is not None:
             if killed_enemy.get_team() == Team.WHITE: self.__dead_white_count[f"{type(killed_enemy).__name__}"] += 1
-            else:                                       self.__dead_black_count[f"{type(killed_enemy).__name__}"] += 1
+            else:                                     self.__dead_black_count[f"{type(killed_enemy).__name__}"] += 1
 
             if isinstance(killed_enemy, King): 
                 self.__game_end = True
                 if killed_enemy.get_team() == Team.WHITE: self.__winner = Team.BLACK
                 else:                                       self.__winner = Team.WHITE
-                return GameState.END
+                return GameState.END, killed_enemy
         
 
         if case == SpecialMove.PROMOTION:
-            return GameState.PROMOTION
+            return GameState.PROMOTION, killed_enemy
         elif case == SpecialMove.LONG_CASTLING:
             _, _ = self.__chess_board.chessman_move(self.get_chessman(dest_pos[0], 'a'), (dest_pos[0], 'd'))
         elif case == SpecialMove.SHORT_CASTLING:
             _, _ = self.__chess_board.chessman_move(self.get_chessman(dest_pos[0], 'h'), (dest_pos[0], 'f'))
-        return GameState.NEXT_TURN
+        return GameState.NEXT_TURN, killed_enemy
     
     def show_board(self):
         self.__chess_board.print_text_board()
