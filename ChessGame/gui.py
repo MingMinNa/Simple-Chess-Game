@@ -179,7 +179,7 @@ def game_state():
     gui_board = GuiBoard()
     chessman_bind, chessman_sprite = init_chessman_display(chess_game)
     promotion_panel = None
-    dead_panel, dead_panel_display = DeadChessmanPanel(chessman_images), False
+    dead_panel, dead_panel_display = InfoPanel(chessman_images), False
 
     gui_state = GuiState.CHESSMAN_CHOOSE
     chosen_chessman = None
@@ -190,18 +190,17 @@ def game_state():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return GuiState.QUIT
-            elif event.type == pygame.KEYUP and event.key == pygame.K_ESCAPE:
-                return GuiState.MAIN
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
-                dead_panel_display = True
             elif event.type == pygame.KEYUP and event.key == pygame.K_TAB:
-                dead_panel_display = False
+                dead_panel_display = not dead_panel_display
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == pygame.BUTTON_LEFT:
                 mouse_pos = pygame.mouse.get_pos()
                 cell_x, cell_y = GuiBoard.get_click_cell(mouse_pos)
 
                 # click out of the board, nothing happens
                 if cell_x not in range(8) or cell_y not in range(8): continue
+                elif dead_panel_display:
+                    if dead_panel.is_in_exit_button(mouse_pos): return GuiState.MAIN
+                    else: continue
 
                 if gui_state == GuiState.CHESSMAN_CHOOSE:
                     gui_state, chosen_chessman, valid_moves = gui_choose_chessman(chess_game, gui_board, chessman_bind, cell_x, cell_y)
@@ -230,7 +229,6 @@ def game_state():
                     chess_game.update_checkmate()
 
         draw_text(screen, f"Turn: {chess_game.get_current_turn().name.title()}", 100, 15, 30, GRAY, BACKGROUND_COLOR)
-        draw_text(screen, f"Press Esc to exit ", 600, 15, 30, GRAY, BACKGROUND_COLOR)
 
         if chess_game.get_checkmate():
             gui_state = GuiState.END

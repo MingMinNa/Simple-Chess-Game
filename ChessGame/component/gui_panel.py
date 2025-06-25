@@ -53,14 +53,20 @@ class PromotionPanel(pygame.sprite.Sprite):
         screen.blit(self.__promotion_panel, self.__rect)
         self.chessman_sprite.draw(screen)
 
-class DeadChessmanPanel(pygame.sprite.Sprite):
+class InfoPanel(pygame.sprite.Sprite):
 
     def __init__(self, chessman_images):
         pygame.sprite.Sprite.__init__(self)
-        self.__chessman_panel = pygame.Surface((PANEL_WIDTH, PANEL_HEIGHT - 50))
-        self.__chessman_panel_rect = self.__chessman_panel.get_rect()
-        self.__chessman_panel_rect.center = (WIDTH // 2, HEIGHT // 2)
-        self.__chessman_panel.fill(GRAY)
+        self.__main_panel = pygame.Surface((PANEL_WIDTH, PANEL_HEIGHT - 35))
+        self.__main_panel_rect = self.__main_panel.get_rect()
+        self.__main_panel_rect.center = (WIDTH // 2, HEIGHT // 2 + 15)
+        self.__main_panel.fill(GRAY)
+
+        
+        self.__exit_panel = pygame.Surface((80, 30))
+        self.__exit_panel_rect = self.__exit_panel.get_rect()
+        self.__exit_panel_rect.center = (WIDTH // 2, HEIGHT // 2 + 90)
+        self.__exit_panel.fill(WHITE)
 
         self.__white_chessmen = dict()
         self.__black_chessman = dict()
@@ -76,8 +82,12 @@ class DeadChessmanPanel(pygame.sprite.Sprite):
             self.__black_chessman[chessman_name] = black_chessman
 
     def draw(self, screen, dead_chessmen):
-        pygame.draw.rect(self.__chessman_panel, BLACK, self.__chessman_panel.get_rect(), 1)
-        screen.blit(self.__chessman_panel, self.__chessman_panel_rect)
+        pygame.draw.rect(self.__main_panel, BLACK, self.__main_panel.get_rect(), 1)
+        screen.blit(self.__main_panel, self.__main_panel_rect)
+        
+        pygame.draw.rect(self.__exit_panel, BLACK, self.__exit_panel.get_rect(), 1)
+        screen.blit(self.__exit_panel, self.__exit_panel_rect)
+
         self.chessman_sprite.draw(screen)
 
         for chessman_name in CHESSMAN_TYPE_NAMES:
@@ -89,6 +99,17 @@ class DeadChessmanPanel(pygame.sprite.Sprite):
 
             draw_text(screen, str(white_dead_count), white_chessman_pos[0], white_chessman_pos[1] + 50, 20, WHITE)
             draw_text(screen, str(black_dead_count), black_chessman_pos[0], black_chessman_pos[1] + 50, 20, BLACK)
+        draw_text(screen, "Exit", self.__exit_panel_rect.center[0], self.__exit_panel_rect.center[1], 30, BLACK)
+
+    def is_in_exit_button(self, mouse_pos):
+
+        x, y = mouse_pos[0], mouse_pos[1]
+
+        if self.__exit_panel_rect.x <= x <= self.__exit_panel_rect.x + self.__exit_panel.get_width() and \
+           self.__exit_panel_rect.y <= y <= self.__exit_panel_rect.y + self.__exit_panel.get_height():
+            return True
+        return False
+
 
 class GameEndPanel(pygame.sprite.Sprite):
 
