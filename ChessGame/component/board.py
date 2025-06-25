@@ -25,6 +25,30 @@ class ChessBoard:
                 return True
             
         return False
+    
+    @staticmethod
+    def is_board_checkmate(board: "ChessBoard", team: Team):
+        is_check = ChessBoard.is_board_in_check(board, team)
+
+        if is_check is False: 
+            return False
+        
+        for row in ROW_VALUE_RANGE:
+            for col in COL_VALUE_RANGE:
+                curr_chessman = board.get_chessman(row, col)
+                if curr_chessman is not None and \
+                   curr_chessman.get_team() == team:
+                    
+                    # try all the valid moves of the chessman
+                    valid_moves = board.get_valid_moves(curr_chessman)
+                    
+                    for action, pos in valid_moves:
+                        next_board = board.peak_move(curr_chessman, pos)
+                        in_check = ChessBoard.is_board_in_check(next_board, team)
+                        del next_board
+
+                        if not in_check:  return False
+        return True
 
     def __init__(self):
         self.reset_board()

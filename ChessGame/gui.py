@@ -100,6 +100,7 @@ def gui_choose_promotion(promotion_panel, mouse_pos, pawn_chessman, chess_game, 
     del chessman_bind[pawn_chessman]
     chessman_type_classes = (None, Queen, Rook, Bishop, Knight, None)
     chess_game.promotion(pawn_chessman, chessman_type_classes[CHESSMAN_TYPE_NAMES.index(chosen_chessman_type_name)])
+    chess_game.get_record().add_promotion_info(chosen_chessman_type_name)
     new_chessman = chess_game.get_chessman(curr_pos[0], curr_pos[1])
     new_gui_chessman = GuiChessman(cell_x, cell_y, curr_team, chessman_images[curr_team][chosen_chessman_type_name])
     chessman_bind[new_chessman] = new_gui_chessman
@@ -179,7 +180,7 @@ def game_state():
     gui_board = GuiBoard()
     chessman_bind, chessman_sprite = init_chessman_display(chess_game)
     promotion_panel = None
-    dead_panel, dead_panel_display = InfoPanel(chessman_images), False
+    info_panel, info_panel_display = InfoPanel(chessman_images), False
 
     gui_state = GuiState.CHESSMAN_CHOOSE
     chosen_chessman = None
@@ -190,16 +191,16 @@ def game_state():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return GuiState.QUIT
-            elif event.type == pygame.KEYUP and event.key == pygame.K_TAB:
-                dead_panel_display = not dead_panel_display
+            elif event.type == pygame.KEYUP and event.key == pygame.K_ESCAPE:
+                info_panel_display = not info_panel_display
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == pygame.BUTTON_LEFT:
                 mouse_pos = pygame.mouse.get_pos()
                 cell_x, cell_y = GuiBoard.get_click_cell(mouse_pos)
 
                 # click out of the board, nothing happens
                 if cell_x not in range(8) or cell_y not in range(8): continue
-                elif dead_panel_display:
-                    if dead_panel.is_in_exit_button(mouse_pos): return GuiState.MAIN
+                elif info_panel_display:
+                    if info_panel.is_in_exit_button(mouse_pos): return GuiState.MAIN
                     else: continue
 
                 if gui_state == GuiState.CHESSMAN_CHOOSE:
@@ -239,7 +240,7 @@ def game_state():
         gui_board.draw_board(screen, chess_game.get_current_turn())
         chessman_sprite.draw(screen)
         if promotion_panel is not None: promotion_panel.draw(screen)                            # promotion panel
-        if dead_panel_display:          dead_panel.draw(screen, chess_game.get_dead_chessmen()) 
+        if info_panel_display:          info_panel.draw(screen, chess_game.get_dead_chessmen()) 
         pygame.display.update()
         
         if gui_state == GuiState.END:  break

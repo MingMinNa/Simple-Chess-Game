@@ -8,6 +8,61 @@ class GameState(Enum):
     NEXT_TURN = auto()
     PROMOTION = auto()
 
+class Record:
+    
+    def __init__(self):
+        self.__move_lst = list()        # (team, chessman_type_name, case, source_pos, dest_pos, killed_enemy_pos, is_check, is_checkmate)
+        self.__promotion_info = dict()  # key: move_lst_index, value: chessman_type_name
+
+    def add_move(self, team, case, chessman_type_name, source_pos, dest_pos, killed_enemy_pos = None, in_check = False, is_checkmate = False):
+        self.__move_lst.append((team, case, chessman_type_name, source_pos, dest_pos, killed_enemy_pos, in_check, is_checkmate))
+
+    def add_promotion_info(self, chessman_type_name):
+        self.__promotion_info[len(self.__move_lst) - 1] = chessman_type_name
+
+    # long algebraic notation
+    def get_chess_notation(self):
+        name_abbr = {
+            "King":   'K',
+            "Queen":  'Q',
+            "Rook":   'R',
+            "Bishop": 'B',
+            "Knight": 'N',
+            "Pawn":   '', # 'P' or ''
+        }
+        notations = dict()
+        pos_to_str = lambda pos: pos[1] + str(pos[0])
+        for i, move in enumerate(self.__move_lst):
+            team, case, chessman_type_name, source_pos, dest_pos, killed_enemy_pos, in_check, is_checkmate = move
+            source_pos_str, dest_pos_str = pos_to_str(source_pos), pos_to_str(dest_pos)
+
+            round = (i // 2) + 1
+
+            notation = name_abbr[chessman_type_name]
+            
+            if case == SpecialMove.EN_PASSANT:
+                notation += source_pos_str + 'x' + dest_pos_str + " e.p."
+            elif case == SpecialMove.LONG_CASTLING:
+                notation = "0-0-0"
+            elif case == SpecialMove.SHORT_CASTLING:
+                notation = "0-0"
+            elif killed_enemy_pos is None:
+                notation += source_pos_str + dest_pos_str
+            else:   # killed_enemy_pos is not None
+                notation += source_pos_str + 'x' + dest_pos_str
+
+            if case == SpecialMove.PROMOTION and i in self.__promotion_info:
+                notation += name_abbr[self.__promotion_info[i]]
+
+            if is_checkmate:
+                notation += '#'
+            elif in_check:
+                notation += '+'
+            
+            notations.setdefault(round, dict())
+            notations[round][team] = notation
+        return round, notations
+
 class ChessGame: 
 
     def __init__(self):
@@ -15,7 +70,7 @@ class ChessGame:
         self.__current_turn = Team.WHITE
         self.__dead_white_count = dict()
         self.__dead_black_count = dict()
-        self.__record = list()
+        self.__record = Record()
         self.__game_end = False
         self.__winner = None
 
@@ -70,8 +125,8 @@ class ChessGame:
         source_pos = target_chessman.get_pos()
         case, killed_enemy = self.__chess_board.chessman_move(target_chessman, dest_pos)
         
-        self.__record.append((type(target_chessman).__name__, source_pos, dest_pos, case))
-        
+        ret_state = GameState.NEXT_TURN
+
         if killed_enemy is not None:
             if killed_enemy.get_team() == Team.WHITE: self.__dead_white_count[f"{type(killed_enemy).__name__}"] += 1
             else:                                     self.__dead_black_count[f"{type(killed_enemy).__name__}"] += 1
@@ -80,17 +135,22 @@ class ChessGame:
                 self.__game_end = True
                 if killed_enemy.get_team() == Team.WHITE: self.__winner = Team.BLACK
                 else:                                       self.__winner = Team.WHITE
-                return GameState.END, killed_enemy
+                ret_state = GameState.END
         
 
         if case == SpecialMove.PROMOTION:
-            return GameState.PROMOTION, killed_enemy
+            ret_state = GameState.PROMOTION
         elif case == SpecialMove.LONG_CASTLING:
             _, _ = self.__chess_board.chessman_move(self.get_chessman(dest_pos[0], 'a'), (dest_pos[0], 'd'))
         elif case == SpecialMove.SHORT_CASTLING:
             _, _ = self.__chess_board.chessman_move(self.get_chessman(dest_pos[0], 'h'), (dest_pos[0], 'f'))
-        return GameState.NEXT_TURN, killed_enemy
-    
+
+        enemy_team = Team.BLACK if self.get_current_turn() == Team.WHITE else Team.WHITE
+        self.__record.add_move(target_chessman.get_team(), case, type(target_chessman).__name__, source_pos, dest_pos, 
+                               killed_enemy_pos = None if killed_enemy is None else killed_enemy.get_pos(), \
+                               in_check = ChessBoard.is_board_in_check(self.__chess_board, enemy_team), \
+                               is_checkmate = ChessBoard.is_board_checkmate(self.__chess_board, enemy_team))
+        return ret_state, killed_enemy
     def show_board(self):
         self.__chess_board.print_text_board()
 
@@ -99,29 +159,9 @@ class ChessGame:
     
     def update_checkmate(self):
 
-        self.update_in_check()
-        if self.get_in_check() is False: 
+        if ChessBoard.is_board_checkmate(self.__chess_board, self.get_current_turn()):
+            self.__checkmate = True
+            self.__winner = Team.BLACK if self.get_current_turn() == Team.WHITE else Team.WHITE 
+        else:
             self.__checkmate = False
-            return
-
-        for row in ROW_VALUE_RANGE:
-            for col in COL_VALUE_RANGE:
-                curr_chessman = self.get_chessman(row, col)
-                if curr_chessman is not None and \
-                   curr_chessman.get_team() == self.__current_turn:
-                    
-                    # try all the valid moves of the chessman
-                    valid_moves = self.get_valid_moves(curr_chessman)
-                    
-                    for action, pos in valid_moves:
-                        next_board = self.__chess_board.peak_move(curr_chessman, pos)
-                        in_check = ChessBoard.is_board_in_check(next_board, self.get_current_turn())
-                        del next_board
-
-                        if not in_check:    
-                            self.__checkmate = False
-                            return
-
-        self.__checkmate = True
-        self.__winner = Team.BLACK if self.get_current_turn() == Team.WHITE else Team.WHITE 
         return 

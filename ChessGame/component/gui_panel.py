@@ -73,13 +73,13 @@ class InfoPanel(pygame.sprite.Sprite):
 
         self.chessman_sprite = pygame.sprite.Group()
 
-        for i, chessman_name in enumerate(CHESSMAN_TYPE_NAMES):
-            white_chessman = PanelChessman(WIDTH // 2 - 160 + i * 55, HEIGHT // 2 - 60, Team.WHITE, chessman_name, chessman_images, side_length = 50)
-            black_chessman = PanelChessman(WIDTH // 2 - 160 + i * 55, HEIGHT // 2 + 5, Team.BLACK, chessman_name, chessman_images, side_length = 50)
+        for i, chessman_type_name in enumerate(CHESSMAN_TYPE_NAMES):
+            white_chessman = PanelChessman(WIDTH // 2 - 160 + i * 55, HEIGHT // 2 - 60, Team.WHITE, chessman_type_name, chessman_images, side_length = 50)
+            black_chessman = PanelChessman(WIDTH // 2 - 160 + i * 55, HEIGHT // 2 + 5, Team.BLACK, chessman_type_name, chessman_images, side_length = 50)
             self.chessman_sprite.add(white_chessman)
             self.chessman_sprite.add(black_chessman)
-            self.__white_chessmen[chessman_name] = white_chessman
-            self.__black_chessman[chessman_name] = black_chessman
+            self.__white_chessmen[chessman_type_name] = white_chessman
+            self.__black_chessman[chessman_type_name] = black_chessman
 
     def draw(self, screen, dead_chessmen):
         pygame.draw.rect(self.__main_panel, BLACK, self.__main_panel.get_rect(), 1)
@@ -90,12 +90,12 @@ class InfoPanel(pygame.sprite.Sprite):
 
         self.chessman_sprite.draw(screen)
 
-        for chessman_name in CHESSMAN_TYPE_NAMES:
-            white_chessman_pos = self.__white_chessmen[chessman_name].get_pos()
-            black_chessman_pos = self.__black_chessman[chessman_name].get_pos()
+        for chessman_type_name in CHESSMAN_TYPE_NAMES:
+            white_chessman_pos = self.__white_chessmen[chessman_type_name].get_pos()
+            black_chessman_pos = self.__black_chessman[chessman_type_name].get_pos()
 
-            white_dead_count = dead_chessmen["White"][chessman_name]
-            black_dead_count = dead_chessmen["Black"][chessman_name]
+            white_dead_count = dead_chessmen["White"][chessman_type_name]
+            black_dead_count = dead_chessmen["Black"][chessman_type_name]
 
             draw_text(screen, str(white_dead_count), white_chessman_pos[0], white_chessman_pos[1] + 50, 20, WHITE)
             draw_text(screen, str(black_dead_count), black_chessman_pos[0], black_chessman_pos[1] + 50, 20, BLACK)
@@ -109,7 +109,6 @@ class InfoPanel(pygame.sprite.Sprite):
            self.__exit_panel_rect.y <= y <= self.__exit_panel_rect.y + self.__exit_panel.get_height():
             return True
         return False
-
 
 class GameEndPanel(pygame.sprite.Sprite):
 
@@ -127,3 +126,8 @@ class GameEndPanel(pygame.sprite.Sprite):
         foreground_color = WHITE if self.__winner == Team.WHITE else BLACK
         draw_text(screen, f"Winner: {self.__winner.name.title()}", WIDTH // 2, HEIGHT // 2 - 20, 75, foreground_color)
         draw_text(screen, f"Press any to continue", WIDTH // 2, HEIGHT // 2 + 40, 40, foreground_color)
+
+class RecordPanel(pygame.sprite.Sprite):
+
+    def __init__(self, *groups):
+        super().__init__(*groups)
