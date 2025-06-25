@@ -8,7 +8,6 @@ CHESSMAN_SIDE_LENGTH         = 60
 CELL_SIDE_LENGTH             = 80
 
 INIT_X,       INIT_Y         = 30, 30
-PANEL_INIT_X, PANEL_INIT_Y   = 150, 225
 
 FPS = 60
 
