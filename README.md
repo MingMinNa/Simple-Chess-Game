@@ -38,5 +38,5 @@ A simple chess game implemented with Python 3.12.9 and Pygame package.
 ## Features to be implement
 * [x] Checkmate detection
 * [ ] Draw detection
-* [ ] Move recording
+* [x] Move recording
 * [x] Captured chessmen display

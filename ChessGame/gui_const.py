@@ -1,8 +1,9 @@
 
 # windows constants
-INIT_WIDTH,   INIT_HEIGHT    = 700, 550
-WIDTH,        HEIGHT         = 700, 700 
-PANEL_WIDTH,  PANEL_HEIGHT   = 400, 250
+INIT_WIDTH,   INIT_HEIGHT             = 700, 550
+WIDTH,        HEIGHT                  = 1000, 700 
+PANEL_WIDTH,  PANEL_HEIGHT            = 400, 250
+RECORD_CELL_WITDH, RECORD_CELL_HEIGHT = 120, 40
 
 CHESSMAN_SIDE_LENGTH         = 60
 CELL_SIDE_LENGTH             = 80

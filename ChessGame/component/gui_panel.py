@@ -30,7 +30,7 @@ class PromotionPanel(pygame.sprite.Sprite):
         self.__promotion_panel = pygame.Surface((PANEL_WIDTH, PANEL_HEIGHT - 150))
         self.__promotion_panel.fill(GRAY)
         self.__rect = self.__promotion_panel.get_rect()
-        self.__rect.center = (WIDTH // 2, HEIGHT // 2)
+        self.__rect.center = (WIDTH // 2 - 150, HEIGHT // 2)
 
         self.chessman_types = list()
         self.chessman_sprite = pygame.sprite.Group()
@@ -120,6 +120,18 @@ class GameEndPanel(pygame.sprite.Sprite):
         self.__rect.center = (WIDTH // 2, HEIGHT // 2)
         self.__winner = winner
 
+    def get_x(self):
+        return self.__rect.x
+    
+    def get_y(self):
+        return self.__rect.y
+
+    def get_width(self):
+        return self.__end_panel.get_width()
+    
+    def get_height(self):
+        return self.__end_panel.get_height()
+    
     def draw(self, screen):
         pygame.draw.rect(self.__end_panel, BLACK, self.__end_panel.get_rect(), 1)
         screen.blit(self.__end_panel, self.__rect)
@@ -129,5 +141,79 @@ class GameEndPanel(pygame.sprite.Sprite):
 
 class RecordPanel(pygame.sprite.Sprite):
 
-    def __init__(self, *groups):
-        super().__init__(*groups)
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+
+        self.__max_round = 0
+        self.__max_display_count = 15
+        self.__start_round = 1
+        self.__end_round = self.__max_display_count
+        self.__latest = True
+        
+        self.__record_cells = dict()
+        self.__record_cells_rect = dict()
+        start_x, start_y = INIT_X + CELL_SIDE_LENGTH * 8 + 70, INIT_Y + 30
+        for i in range(self.__max_display_count):
+            self.__record_cells[i] = dict()
+            self.__record_cells_rect[i] = dict()
+
+            panel, panel_rect = self.__generate_cell(RECORD_CELL_WITDH, RECORD_CELL_HEIGHT, start_x, start_y + RECORD_CELL_HEIGHT * i, FRESH_GREEN)
+            self.__record_cells[i][Team.WHITE] = panel
+            self.__record_cells_rect[i][Team.WHITE] = panel_rect
+            
+            panel, panel_rect = self.__generate_cell(RECORD_CELL_WITDH, RECORD_CELL_HEIGHT, start_x + RECORD_CELL_WITDH, start_y + RECORD_CELL_HEIGHT * i, FRESH_GREEN)
+            self.__record_cells[i][Team.BLACK] = panel
+            self.__record_cells_rect[i][Team.BLACK] = panel_rect
+
+
+    def draw(self, screen, rounds, chess_notations):
+
+        self.__max_round = max(self.__max_round, rounds)
+
+        if self.__latest: 
+            self.__end_round = self.__max_round
+            self.__start_round = max(1, self.__end_round - self.__max_display_count + 1)
+
+        draw_text(screen, "White", INIT_X + CELL_SIDE_LENGTH * 8 + 70 + 60, INIT_Y + 5, 40, WHITE)
+        draw_text(screen, "Black", INIT_X + CELL_SIDE_LENGTH * 8 + 70 + 120 + 60, INIT_Y + 5, 40, GRAY)
+        for i in range(self.__max_display_count):
+            round_index = i + self.__start_round
+            draw_text(screen, str(round_index), self.__record_cells_rect[i][Team.WHITE].x - 30, self.__record_cells_rect[i][Team.WHITE].center[1], 40, WHITE)
+
+            for team in (Team.WHITE, Team.BLACK):
+                pygame.draw.rect(self.__record_cells[i][team], BACKGROUND_COLOR, self.__record_cells[i][team].get_rect(), 2)
+                screen.blit(self.__record_cells[i][team], self.__record_cells_rect[i][team])
+            
+            if round_index > rounds: continue
+
+            for team, color in zip((Team.WHITE, Team.BLACK), \
+                                   (     WHITE,      BLACK)):
+                if team not in chess_notations[round_index]: continue
+                center_x, center_y = self.__record_cells_rect[i][team].center
+                draw_text(screen, chess_notations[round_index][team], center_x, center_y, 35, color)
+
+    def set_latest(self):
+        self.__latest = True
+
+    def scroll_up(self):
+
+        self.__latest = False
+        if self.__start_round > 1:
+            self.__end_round -= 1
+            self.__start_round -= 1
+
+    def scroll_down(self):
+
+        self.__latest = False
+        if self.__end_round < self.__max_round:
+            self.__end_round += 1
+            self.__start_round += 1
+
+    def __generate_cell(self, width, height, x, y, color):
+        
+        panel = pygame.Surface((width, height))
+        panel_rect = panel.get_rect()
+        panel_rect.x = x
+        panel_rect.y = y
+        panel.fill(color)
+        return panel, panel_rect

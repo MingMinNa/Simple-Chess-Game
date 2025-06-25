@@ -30,6 +30,7 @@ class Record:
             "Knight": 'N',
             "Pawn":   '', # 'P' or ''
         }
+        round = 0
         notations = dict()
         pos_to_str = lambda pos: pos[1] + str(pos[0])
         for i, move in enumerate(self.__move_lst):

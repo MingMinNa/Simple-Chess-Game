@@ -108,7 +108,22 @@ def gui_choose_promotion(promotion_panel, mouse_pos, pawn_chessman, chess_game, 
 
     return GuiState.NEXT_TURN
 
-def gui_game_end(chess_game, screen, gui_board, chessman_sprite):
+def gui_game_end(chess_game, record_panel, screen, gui_board, chessman_sprite):
+
+    def refresh_end_screen(end_panel):
+        # hide the end panel
+        rect_area = pygame.Rect(end_panel.get_x(), end_panel.get_y(), end_panel.get_width(), end_panel.get_height())
+        pygame.draw.rect(screen, BACKGROUND_COLOR, rect_area)
+
+        # hide the end panel
+        rect_area = pygame.Rect(INIT_X + CELL_SIDE_LENGTH * 8, INIT_Y - 20, 300, 650)
+        pygame.draw.rect(screen, BACKGROUND_COLOR, rect_area)
+
+        rounds, chess_notations = chess_game.get_record().get_chess_notation()
+        record_panel.draw(screen, rounds, chess_notations)
+        gui_board.draw_board(screen, chess_game.get_current_turn())
+        chessman_sprite.draw(screen)
+    tab_pressed = False
     end_panel = GameEndPanel(chess_game.get_winner())
     end_panel.draw(screen)
     pygame.display.update()
@@ -119,14 +134,25 @@ def gui_game_end(chess_game, screen, gui_board, chessman_sprite):
                 return GuiState.QUIT
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
                 # hide the end panel
-                gui_board.draw_board(screen, chess_game.get_current_turn())
-                chessman_sprite.draw(screen)
+                refresh_end_screen(end_panel)
+                tab_pressed = True
                 pygame.display.update()
             elif event.type == pygame.KEYUP and event.key == pygame.K_TAB:
                 end_panel.draw(screen)
+                tab_pressed = False
                 pygame.display.update()
             elif event.type == pygame.KEYUP and event.key != pygame.K_TAB:
                 return GuiState.MAIN
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == pygame.BUTTON_WHEELUP:
+                record_panel.scroll_up()
+                refresh_end_screen(end_panel)
+                if not tab_pressed: end_panel.draw(screen)
+                pygame.display.update()
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == pygame.BUTTON_WHEELDOWN:
+                record_panel.scroll_down()
+                refresh_end_screen(end_panel)
+                if not tab_pressed: end_panel.draw(screen)
+                pygame.display.update()
 
 def init_pygame():
     pygame.init()
@@ -181,6 +207,7 @@ def game_state():
     chessman_bind, chessman_sprite = init_chessman_display(chess_game)
     promotion_panel = None
     info_panel, info_panel_display = InfoPanel(chessman_images), False
+    record_panel = RecordPanel()
 
     gui_state = GuiState.CHESSMAN_CHOOSE
     chosen_chessman = None
@@ -193,6 +220,10 @@ def game_state():
                 return GuiState.QUIT
             elif event.type == pygame.KEYUP and event.key == pygame.K_ESCAPE:
                 info_panel_display = not info_panel_display
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == pygame.BUTTON_WHEELUP:
+                record_panel.scroll_up()
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == pygame.BUTTON_WHEELDOWN:
+                record_panel.scroll_down()
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == pygame.BUTTON_LEFT:
                 mouse_pos = pygame.mouse.get_pos()
                 cell_x, cell_y = GuiBoard.get_click_cell(mouse_pos)
@@ -228,6 +259,7 @@ def game_state():
 
                     chess_game.update_in_check()
                     chess_game.update_checkmate()
+                    record_panel.set_latest()
 
         draw_text(screen, f"Turn: {chess_game.get_current_turn().name.title()}", 100, 15, 30, GRAY, BACKGROUND_COLOR)
 
@@ -239,10 +271,12 @@ def game_state():
         
         gui_board.draw_board(screen, chess_game.get_current_turn())
         chessman_sprite.draw(screen)
+        rounds, chess_notations = chess_game.get_record().get_chess_notation()
+        record_panel.draw(screen, rounds, chess_notations)
         if promotion_panel is not None: promotion_panel.draw(screen)                            # promotion panel
         if info_panel_display:          info_panel.draw(screen, chess_game.get_dead_chessmen()) 
         pygame.display.update()
         
         if gui_state == GuiState.END:  break
     
-    return gui_game_end(chess_game, screen, gui_board, chessman_sprite)
+    return gui_game_end(chess_game, record_panel, screen, gui_board, chessman_sprite)
