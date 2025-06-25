@@ -259,6 +259,8 @@ def game_state():
 
                     chess_game.update_in_check()
                     chess_game.update_checkmate()
+                    chess_game.update_draw()
+                    
                     record_panel.set_latest()
 
         draw_text(screen, f"Turn: {chess_game.get_current_turn().name.title()}", 100, 15, 30, GRAY, BACKGROUND_COLOR)
@@ -268,6 +270,10 @@ def game_state():
             draw_text(screen, "Checkmate", 350, 15, 30, RED, BACKGROUND_COLOR)
         elif chess_game.get_in_check():
             draw_text(screen, "Check", 350, 15, 30, RED, BACKGROUND_COLOR)
+        elif chess_game.get_draw():
+            gui_state = GuiState.END
+            draw_text(screen, "Draw", 350, 15, 30, RED, BACKGROUND_COLOR)
+
         
         gui_board.draw_board(screen, chess_game.get_current_turn())
         chessman_sprite.draw(screen)

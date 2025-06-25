@@ -77,14 +77,33 @@ class ChessGame:
 
         self.__in_check = False
         self.__checkmate = False
+        self.__draw = False
+        self.__rule_50_counter = 0
+
+        self.__round_record = {
+            "Pawn Move": False,
+            "Chessman Killed": False
+        }
 
         for chessman_type_name in CHESSMAN_TYPE_NAMES:
             self.__dead_white_count[chessman_type_name] = 0
             self.__dead_black_count[chessman_type_name] = 0
 
     def next_turn(self):
+
         self.__chess_board.refresh_en_passant(self.get_current_turn())
         self.__current_turn = Team.BLACK if self.get_current_turn() == Team.WHITE else Team.WHITE
+
+        # check round_info
+        if self.get_current_turn() == Team.WHITE:
+            if self.__round_record["Pawn Move"] is False and self.__round_record["Chessman Killed"] is False:
+                self.__rule_50_counter += 1
+            else:
+                self.__rule_50_counter = 0
+            self.__round_record = {
+                "Pawn Move": False,
+                "Chessman Killed": False
+            }
         
     def get_current_turn(self):
         return self.__current_turn
@@ -119,6 +138,9 @@ class ChessGame:
     def get_checkmate(self):
         return self.__checkmate
 
+    def get_draw(self):
+        return self.__draw
+
     def promotion(self, target_pawn, new_chessman_type):
         self.__chess_board.promotion(target_pawn, new_chessman_type)
 
@@ -126,9 +148,12 @@ class ChessGame:
         source_pos = target_chessman.get_pos()
         case, killed_enemy = self.__chess_board.chessman_move(target_chessman, dest_pos)
         
+        if isinstance(target_chessman, Pawn): self.__round_record["Pawn Move"] = True
+
         ret_state = GameState.NEXT_TURN
 
         if killed_enemy is not None:
+            self.__round_record["Chessman Killed"] = True
             if killed_enemy.get_team() == Team.WHITE: self.__dead_white_count[f"{type(killed_enemy).__name__}"] += 1
             else:                                     self.__dead_black_count[f"{type(killed_enemy).__name__}"] += 1
 
@@ -137,7 +162,6 @@ class ChessGame:
                 if killed_enemy.get_team() == Team.WHITE: self.__winner = Team.BLACK
                 else:                                       self.__winner = Team.WHITE
                 ret_state = GameState.END
-        
 
         if case == SpecialMove.PROMOTION:
             ret_state = GameState.PROMOTION
@@ -152,6 +176,7 @@ class ChessGame:
                                in_check = ChessBoard.is_board_in_check(self.__chess_board, enemy_team), \
                                is_checkmate = ChessBoard.is_board_checkmate(self.__chess_board, enemy_team))
         return ret_state, killed_enemy
+    
     def show_board(self):
         self.__chess_board.print_text_board()
 
@@ -166,3 +191,22 @@ class ChessGame:
         else:
             self.__checkmate = False
         return 
+    
+    def update_draw(self):
+        
+        self.__draw = False
+
+        # 逼和 stalemate
+        self.update_in_check()
+        if not self.get_in_check() and \
+           ChessBoard.is_board_no_valid_moves(self.__chess_board, self.get_current_turn()):
+            self.__draw = True
+            return 
+
+        # 三次重複局面 
+
+
+        # 50個回合內，雙方既沒有棋子被吃掉，也沒有士兵被移動過
+        if self.__rule_50_counter == 50: 
+            self.__draw = True
+            return 

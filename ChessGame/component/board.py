@@ -28,10 +28,12 @@ class ChessBoard:
     
     @staticmethod
     def is_board_checkmate(board: "ChessBoard", team: Team):
-        is_check = ChessBoard.is_board_in_check(board, team)
 
-        if is_check is False: 
-            return False
+        is_check = ChessBoard.is_board_in_check(board, team)
+        no_valid_moves = ChessBoard.is_board_no_valid_moves(board, team)
+        return is_check and no_valid_moves
+
+    def is_board_no_valid_moves(board: "ChessBoard", team: Team):
         
         for row in ROW_VALUE_RANGE:
             for col in COL_VALUE_RANGE:
