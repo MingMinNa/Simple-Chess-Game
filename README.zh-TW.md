@@ -32,11 +32,7 @@
     ```
 2. 執行主程式
     ```bash
-    # 執行 GUI 版本
-    python gui_main.py
-
-    # 執行 CLI 版本
-    python cli_main.py
+    python main.py
     ```
 ## 備註
 大部分的西洋棋規則均已實作，例如：王車易位、吃過路兵，升變等。但有些許和棋條件並無實作。

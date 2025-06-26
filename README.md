@@ -31,11 +31,7 @@ A simple chess game implemented with Python 3.12.9 and Pygame package.
     ```
 2. Run the main program
     ```bash
-    # GUI version
-    python gui_main.py
-
-    # CLI version
-    python cli_main.py
+    python main.py
     ```
 ## Note
 Most rules of chess, such as castling, en passant, and promotion, have been implemented, but a few draw conditions have not.
