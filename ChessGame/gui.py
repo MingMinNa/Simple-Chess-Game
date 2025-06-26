@@ -123,7 +123,7 @@ def gui_game_end(chess_game, record_panel, screen, gui_board, chessman_sprite):
         record_panel.draw(screen, rounds, chess_notations)
         gui_board.draw_board(screen, chess_game.get_current_turn())
         chessman_sprite.draw(screen)
-    tab_pressed = False
+    end_panel_display = True
     end_panel = GameEndPanel(chess_game.get_winner())
     end_panel.draw(screen)
     pygame.display.update()
@@ -133,26 +133,22 @@ def gui_game_end(chess_game, record_panel, screen, gui_board, chessman_sprite):
             if event.type == pygame.QUIT:
                 return GuiState.QUIT
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
-                # hide the end panel
-                refresh_end_screen(end_panel)
-                tab_pressed = True
-                pygame.display.update()
+                end_panel_display = False
             elif event.type == pygame.KEYUP and event.key == pygame.K_TAB:
-                end_panel.draw(screen)
-                tab_pressed = False
-                pygame.display.update()
+                end_panel_display = True
             elif event.type == pygame.KEYUP and event.key != pygame.K_TAB:
                 return GuiState.MAIN
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == pygame.BUTTON_WHEELUP:
-                record_panel.scroll_up()
-                refresh_end_screen(end_panel)
-                if not tab_pressed: end_panel.draw(screen)
-                pygame.display.update()
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == pygame.BUTTON_WHEELDOWN:
-                record_panel.scroll_down()
-                refresh_end_screen(end_panel)
-                if not tab_pressed: end_panel.draw(screen)
-                pygame.display.update()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == pygame.BUTTON_WHEELUP:
+                    record_panel.scroll_up()
+                elif event.button == pygame.BUTTON_WHEELDOWN:
+                    record_panel.scroll_down()
+
+        # 統一更新畫面
+        refresh_end_screen(end_panel)
+        if end_panel_display:
+            end_panel.draw(screen)
+        pygame.display.update()
 
 def init_pygame():
     pygame.init()
