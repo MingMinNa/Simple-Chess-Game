@@ -135,7 +135,8 @@ class GameEndPanel(pygame.sprite.Sprite):
     def draw(self, screen):
         pygame.draw.rect(self.__end_panel, BLACK, self.__end_panel.get_rect(), 1)
         screen.blit(self.__end_panel, self.__rect)
-        foreground_color = WHITE if self.__winner == Team.WHITE else BLACK
+
+        foreground_color = BLACK if self.__winner == Team.BLACK else WHITE
 
         if self.__winner is not None:
             draw_text(screen, f"Winner: {self.__winner.name.title()}", WIDTH // 2, HEIGHT // 2 - 20, 75, foreground_color)

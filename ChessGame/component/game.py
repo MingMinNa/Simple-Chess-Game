@@ -11,14 +11,63 @@ class GameState(Enum):
 class Record:
     
     def __init__(self):
+        # for captured chessman display
         self.__move_lst = list()        # (team, chessman_type_name, case, source_pos, dest_pos, killed_enemy_pos, is_check, is_checkmate)
         self.__promotion_info = dict()  # key: move_lst_index, value: chessman_type_name
+
+        # for threefold repetition rule
+        self.__board_lst = list()       # (board_representation, white_long_castling, white_short_castling, black_long_castling, black_short_castling)
+        self.__repetition_count = 0      
 
     def add_move(self, team, case, chessman_type_name, source_pos, dest_pos, killed_enemy_pos = None, in_check = False, is_checkmate = False):
         self.__move_lst.append((team, case, chessman_type_name, source_pos, dest_pos, killed_enemy_pos, in_check, is_checkmate))
 
     def add_promotion_info(self, chessman_type_name):
         self.__promotion_info[len(self.__move_lst) - 1] = chessman_type_name
+
+    def add_board(self, chess_board: ChessBoard):
+        
+        # white_long_castling, white_short_castling, black_long_castling, black_short_castling)
+        long_short = [False, False, False, False]
+        
+        for i, _ in enumerate((Team.WHITE, Team.BLACK)):
+            row = (i * (-1) + len(ROW_VALUE_RANGE)) % len(ROW_VALUE_RANGE) + 1
+            
+            king_chessman, rook_chessman = chess_board.get_chessman(row, 'e'), chess_board.get_chessman(row, 'a')
+            if isinstance(king_chessman, King) and isinstance(rook_chessman, Rook) and \
+               king_chessman.get_moved() == False and rook_chessman.get_moved() == False:
+                long_short[2 * i] = True
+            
+            king_chessman, rook_chessman = chess_board.get_chessman(row, 'e'), chess_board.get_chessman(row, 'h')
+            if isinstance(king_chessman, King) and isinstance(rook_chessman, Rook) and \
+               king_chessman.get_moved() == False and rook_chessman.get_moved() == False:
+                long_short[2 * i + 1] = True
+
+        board_str = ""
+
+        name_abbr = {
+            "King":   'K',
+            "Queen":  'Q',
+            "Rook":   'R',
+            "Bishop": 'B',
+            "Knight": 'N',
+            "Pawn":   '', # 'P' or ''
+        }
+        
+        for row in ROW_VALUE_RANGE:
+            for col in COL_VALUE_RANGE:
+                chessman = chess_board.get_chessman(row, col)
+                
+                if chessman is None:                 board_str += "n,"
+                elif not isinstance(chessman, Pawn): board_str += f"{name_abbr[type(chessman).__name__]},"
+                else:
+                    board_str += 'P'
+                    for pos in chessman.get_en_passant():
+                        board_str += f"({pos[0]}{pos[1]})"
+                    board_str += ','
+        board_representation = (board_str, *long_short)
+        self.__repetition_count = max(self.__repetition_count, self.__board_lst.count(board_representation) + 1)
+        self.__board_lst.append(board_representation)
 
     # long algebraic notation
     def get_chess_notation(self):
@@ -64,6 +113,9 @@ class Record:
             notations[round][team] = notation
         return round, notations
 
+    def get_repetitions(self):
+        return self.__repetition_count
+
 class ChessGame: 
 
     def __init__(self):
@@ -88,6 +140,8 @@ class ChessGame:
         for chessman_type_name in CHESSMAN_TYPE_NAMES:
             self.__dead_white_count[chessman_type_name] = 0
             self.__dead_black_count[chessman_type_name] = 0
+
+        self.record_board()
 
     def next_turn(self):
 
@@ -171,10 +225,10 @@ class ChessGame:
             _, _ = self.__chess_board.chessman_move(self.get_chessman(dest_pos[0], 'h'), (dest_pos[0], 'f'))
 
         enemy_team = Team.BLACK if self.get_current_turn() == Team.WHITE else Team.WHITE
-        self.__record.add_move(target_chessman.get_team(), case, type(target_chessman).__name__, source_pos, dest_pos, 
-                               killed_enemy_pos = None if killed_enemy is None else killed_enemy.get_pos(), \
-                               in_check = ChessBoard.is_board_in_check(self.__chess_board, enemy_team), \
-                               is_checkmate = ChessBoard.is_board_checkmate(self.__chess_board, enemy_team))
+        self.record_move(target_chessman.get_team(), case, type(target_chessman).__name__, source_pos, dest_pos, 
+                         killed_enemy_pos = None if killed_enemy is None else killed_enemy.get_pos(), \
+                         in_check = ChessBoard.is_board_in_check(self.__chess_board, enemy_team), \
+                         is_checkmate = ChessBoard.is_board_checkmate(self.__chess_board, enemy_team))
         return ret_state, killed_enemy
     
     def show_board(self):
@@ -203,10 +257,21 @@ class ChessGame:
             self.__draw = True
             return 
 
-        # 三次重複局面 
+        # 三次重複局面 threefold repetition rule
+        if self.__record.get_repetitions() >= 3:
+            self.__draw = True
+            return 
 
-
-        # 50個回合內，雙方既沒有棋子被吃掉，也沒有士兵被移動過
+        # 50個回合內，雙方既沒有棋子被吃掉，也沒有士兵被移動過 50-move rule
         if self.__rule_50_counter == 50: 
             self.__draw = True
             return 
+        
+    def record_move(self, team, case, chessman_type_name, source_pos, dest_pos, killed_enemy_pos = None, in_check = False, is_checkmate = False):
+        self.__record.add_move(team, case, chessman_type_name, source_pos, dest_pos, killed_enemy_pos, in_check, is_checkmate)
+
+    def record_promotion_info(self, chessman_type_name):
+        self.__record.add_promotion_info(chessman_type_name)
+
+    def record_board(self):
+        self.__record.add_board(self.__chess_board)

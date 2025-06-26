@@ -100,7 +100,7 @@ def gui_choose_promotion(promotion_panel, mouse_pos, pawn_chessman, chess_game, 
     del chessman_bind[pawn_chessman]
     chessman_type_classes = (None, Queen, Rook, Bishop, Knight, None)
     chess_game.promotion(pawn_chessman, chessman_type_classes[CHESSMAN_TYPE_NAMES.index(chosen_chessman_type_name)])
-    chess_game.get_record().add_promotion_info(chosen_chessman_type_name)
+    chess_game.record_promotion_info(chosen_chessman_type_name)
     new_chessman = chess_game.get_chessman(curr_pos[0], curr_pos[1])
     new_gui_chessman = GuiChessman(cell_x, cell_y, curr_team, chessman_images[curr_team][chosen_chessman_type_name])
     chessman_bind[new_chessman] = new_gui_chessman
@@ -257,6 +257,7 @@ def game_state():
                     GuiChessman.repaint_chessmen(chess_game, chessman_bind)
                     gui_state = GuiState.CHESSMAN_CHOOSE
 
+                    chess_game.record_board()
                     chess_game.update_in_check()
                     chess_game.update_checkmate()
                     chess_game.update_draw()
