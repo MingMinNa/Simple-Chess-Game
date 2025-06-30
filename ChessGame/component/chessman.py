@@ -1,21 +1,21 @@
 from enum import Enum, auto
-from typing import override
+from typing import override, Optional, Tuple, List
 from ..const import *
+from ..types import *
 
 
-
-def check_valid_pos(pos):
+def check_valid_pos(pos: "BoardPosType") -> bool:
     # pos = (row, col)
     if pos[0] in ROW_VALUE_RANGE and pos[1] in COL_VALUE_RANGE:
         return True
     return False
 
-def calc_position(current_pos, row_move, col_move):
+def calc_position(current_pos: "BoardPosType", row_move: int, col_move: int) -> Tuple[bool, Optional["BoardPosType"]]:
 
-    def letter_to_int(col_alpha):
+    def letter_to_int(col_alpha: str) -> int:
         return COL_VALUE_RANGE.index(col_alpha)
     
-    def int_to_letter(col_idx):
+    def int_to_letter(col_idx: int) -> str:
         if col_idx >= len(COL_VALUE_RANGE) or col_idx < 0: return "#" # error chars
         return COL_VALUE_RANGE[col_idx]
 
@@ -31,7 +31,7 @@ def calc_position(current_pos, row_move, col_move):
 
     return True, next_pos
 
-def get_all_team_attack_area(team, board):
+def get_all_team_attack_area(team: "Team", board: "BoardDictType") -> set["BoardPosType"]:
     team_attack_area = set()
 
     for row in ROW_VALUE_RANGE:
@@ -50,7 +50,7 @@ class Team(Enum):
     BLACK = 30 # for \033[30m ... \033[0m
 
 class BaseChessman:
-    def __init__(self, init_row: int, init_col: str, team: Team):
+    def __init__(self, init_row: int, init_col: str, team: Team) -> None:
         if not check_valid_pos((init_row, init_col)):
             raise ValueError(f"Fail to initialize a chessman whose has wrong position ({init_row}, {init_col})")
         if not isinstance(team, Team):
@@ -68,45 +68,45 @@ class BaseChessman:
         self.__current_row = next_row_pos
         self.__current_col = next_col_pos
 
-    def set_pos(self, next_pos: tuple[int, str]) -> None:
+    def set_pos(self, next_pos: "BoardPosType") -> None:
         self.__current_row = next_pos[0]
         self.__current_col = next_pos[1]
     
-    def unicode(self):
+    def unicode(self) -> str:
         pass
 
-    def get_valid_moves(self, board):
+    def get_valid_moves(self, board: "BoardDictType") -> set["MoveType"]:
         pass
 
-    def get_attack_area(self, board):
+    def get_attack_area(self, board: "BoardDictType") -> set["BoardPosType"]:
         pass
 
     def set_moved(self):
         self.__has_moved = True
 
-    def get_pos(self):
+    def get_pos(self) -> "BoardPosType":
         return (self.__current_row, self.__current_col)
     
-    def get_team(self):
+    def get_team(self) -> Team:
         return self.__team
 
-    def get_moved(self):
+    def get_moved(self) -> bool:
         return self.__has_moved
 
 class King(BaseChessman):
 
-    def __init__(self, init_row: int, init_col: str, team: Team):
+    def __init__(self, init_row: int, init_col: str, team: Team) -> None:
         super().__init__(init_row, init_col, team)
     
     @override
-    def unicode(self):
+    def unicode(self) -> str:
         if self.get_team() == Team.WHITE: return "\u2654"
         else:                             return "\u265A"
     
     @override
-    def get_valid_moves(self, board):
+    def get_valid_moves(self, board: "BoardDictType") -> set["MoveType"]:
 
-        def check_castling(start_row, board, all_enemy_attack_area, between_cells, king_pass_cells):
+        def check_castling(start_row: int, board: "BoardDictType", all_enemy_attack_area: set["BoardPosType"], between_cells: Tuple[str], king_pass_cells: Tuple[str]) -> bool:
 
             target_rook = board[start_row][COL_VALUE_RANGE[0]]
             if isinstance(target_rook, Rook) and target_rook.get_moved() is False:
@@ -155,7 +155,7 @@ class King(BaseChessman):
         return valid_moves
 
     @override
-    def get_attack_area(self, board):
+    def get_attack_area(self, board: "BoardDictType") -> set["BoardPosType"]:
 
         attack_area = set() # store the attackable position 
 
@@ -178,16 +178,16 @@ class King(BaseChessman):
 
 class Queen(BaseChessman):
 
-    def __init__(self, init_row: int, init_col: str, team: Team):
+    def __init__(self, init_row: int, init_col: str, team: Team) -> None:
         super().__init__(init_row, init_col, team)
     
     @override
-    def unicode(self):
+    def unicode(self) -> str:
         if self.get_team() == Team.WHITE: return "\u2655"
         else:                             return "\u265B"
 
     @override
-    def get_valid_moves(self, board):
+    def get_valid_moves(self, board: "BoardDictType") -> set["MoveType"]:
         
         attack_area = self.get_attack_area(board)
 
@@ -204,7 +204,7 @@ class Queen(BaseChessman):
         return valid_moves
 
     @override
-    def get_attack_area(self, board):
+    def get_attack_area(self, board: "BoardDictType") -> set["BoardPosType"]:
         
         attack_area = set() # store the attackable position 
 
@@ -234,16 +234,16 @@ class Queen(BaseChessman):
 
 class Rook(BaseChessman):
 
-    def __init__(self, init_row: int, init_col: str, team: Team):
+    def __init__(self, init_row: int, init_col: str, team: Team) -> None:
         super().__init__(init_row, init_col, team)
 
     @override
-    def unicode(self):
+    def unicode(self) -> str:
         if self.get_team() == Team.WHITE: return "\u2656"
         else:                             return "\u265C"
     
     @override
-    def get_valid_moves(self, board):
+    def get_valid_moves(self, board: "BoardDictType") -> set["MoveType"]:
         
         attack_area = self.get_attack_area(board)
 
@@ -260,7 +260,7 @@ class Rook(BaseChessman):
         return valid_moves
 
     @override
-    def get_attack_area(self, board):
+    def get_attack_area(self, board: "BoardDictType") -> set["BoardPosType"]:
         
         attack_area = set() # store the attackable position 
 
@@ -290,16 +290,16 @@ class Rook(BaseChessman):
 
 class Bishop(BaseChessman):
 
-    def __init__(self, init_row: int, init_col: str, team: Team):
+    def __init__(self, init_row: int, init_col: str, team: Team) -> None:
         super().__init__(init_row, init_col, team)
 
     @override
-    def unicode(self):
+    def unicode(self) -> str:
         if self.get_team() == Team.WHITE: return "\u2657"
         else:                             return "\u265D"
 
     @override
-    def get_valid_moves(self, board):
+    def get_valid_moves(self, board: "BoardDictType") -> set["MoveType"]:
         
         attack_area = self.get_attack_area(board)
 
@@ -316,7 +316,7 @@ class Bishop(BaseChessman):
         return valid_moves
 
     @override
-    def get_attack_area(self, board):
+    def get_attack_area(self, board: "BoardDictType") -> set["BoardPosType"]:
         
         attack_area = set() # store the attackable position 
 
@@ -346,16 +346,16 @@ class Bishop(BaseChessman):
 
 class Knight(BaseChessman):
 
-    def __init__(self, init_row: int, init_col: str, team: Team):
+    def __init__(self, init_row: int, init_col: str, team: Team) -> None:
         super().__init__(init_row, init_col, team)
 
     @override
-    def unicode(self):
+    def unicode(self) -> str:
         if self.get_team() == Team.WHITE: return "\u2658"
         else:                             return "\u265E"
 
     @override
-    def get_valid_moves(self, board):
+    def get_valid_moves(self, board: "BoardDictType") -> set["MoveType"]:
         
         attack_area = self.get_attack_area(board)
 
@@ -372,7 +372,7 @@ class Knight(BaseChessman):
         return valid_moves
 
     @override
-    def get_attack_area(self, board):
+    def get_attack_area(self, board: "BoardDictType") -> set["BoardPosType"]:
         
         attack_area = set() # store the attackable position 
 
@@ -399,19 +399,19 @@ class Knight(BaseChessman):
 
 class Pawn(BaseChessman):
 
-    def __init__(self, init_row: int, init_col: str, team: Team):
+    def __init__(self, init_row: int, init_col: str, team: Team) -> None:
         super().__init__(init_row, init_col, team)
 
         self.__en_passant = list()
         self.__advance_direction = 1 if self.get_team() == Team.WHITE else -1
 
     @override
-    def unicode(self):
+    def unicode(self) -> str:
         if self.get_team() == Team.WHITE: return "\u2659"
         else:                             return "\u265F"
 
     @override
-    def get_valid_moves(self, board):
+    def get_valid_moves(self, board: "BoardDictType") -> set["MoveType"]:
 
         valid_moves = set()
 
@@ -452,7 +452,7 @@ class Pawn(BaseChessman):
         return valid_moves
 
     @override
-    def get_attack_area(self, board):
+    def get_attack_area(self, board: "BoardDictType") -> set["BoardPosType"]:
         
         attack_area = set() # store the attackable position 
 
@@ -468,12 +468,12 @@ class Pawn(BaseChessman):
     
         return attack_area
 
-    def clear_en_passant(self):
+    def clear_en_passant(self) -> None:
         self.__en_passant.clear()
 
-    def add_en_passant(self, pos):
+    def add_en_passant(self, pos: "BoardPosType") -> None:
         self.__en_passant.append(pos)
 
-    def get_en_passant(self):
+    def get_en_passant(self) -> List["BoardPosType"]:
         return self.__en_passant
     

@@ -1,7 +1,10 @@
 from enum import Enum, auto
 from copy import deepcopy
+from typing import Optional
 from .chessman import *
 from ..const import *
+from ..types import *
+
 
 class SpecialMove(Enum):
     PROMOTION = auto()
@@ -12,7 +15,7 @@ class SpecialMove(Enum):
 class ChessBoard:
 
     @staticmethod
-    def is_board_in_check(board: "ChessBoard", team: Team):
+    def is_board_in_check(board: "ChessBoard", team: Team) -> bool:
         
         enemy_team = Team.BLACK if team == Team.WHITE else Team.WHITE
         team_attack_area = get_all_team_attack_area(enemy_team, board.get_entire_board())
@@ -27,13 +30,14 @@ class ChessBoard:
         return False
     
     @staticmethod
-    def is_board_checkmate(board: "ChessBoard", team: Team):
+    def is_board_checkmate(board: "ChessBoard", team: Team) -> bool:
 
         is_check = ChessBoard.is_board_in_check(board, team)
         no_valid_moves = ChessBoard.is_board_no_valid_moves(board, team)
         return is_check and no_valid_moves
 
-    def is_board_no_valid_moves(board: "ChessBoard", team: Team):
+    @staticmethod
+    def is_board_no_valid_moves(board: "ChessBoard", team: Team) -> bool:
         
         for row in ROW_VALUE_RANGE:
             for col in COL_VALUE_RANGE:
@@ -52,10 +56,10 @@ class ChessBoard:
                         if not in_check:  return False
         return True
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.reset_board()
 
-    def reset_board(self):
+    def reset_board(self) -> None:
         self.__board = dict()
 
         for row in ROW_VALUE_RANGE:
@@ -72,7 +76,7 @@ class ChessBoard:
             self.__board[7][col] = Pawn(7, col, Team.BLACK)
             self.__board[8][col] = chessman_class(8, col, Team.BLACK)
 
-    def print_text_board(self):
+    def print_text_board(self) -> None:
 
         print(" " * 8, end = "")
         for col_name in COL_VALUE_RANGE:
@@ -87,7 +91,7 @@ class ChessBoard:
                 else:           print(f"----    ", end = "")
             print()
     
-    def print_graphic_board(self):
+    def print_graphic_board(self) -> None:
 
         print(" " * 5, end = "")
         for col_name in COL_VALUE_RANGE:
@@ -102,13 +106,13 @@ class ChessBoard:
                 else:           print(f"  -  ", end = "")
             print()
 
-    def get_chessman(self, row, col):
+    def get_chessman(self, row: int, col: str) -> BaseChessman:
         return self.__board[row][col]
 
-    def get_entire_board(self):
+    def get_entire_board(self) -> "BoardDictType":
         return self.__board
 
-    def get_valid_moves(self, target_chessman):
+    def get_valid_moves(self, target_chessman: BaseChessman) -> set["MoveType"]:
 
         if target_chessman is None: return set()
 
@@ -128,7 +132,7 @@ class ChessBoard:
                 valid_moves.add((action, pos))
         return valid_moves
         
-    def refresh_en_passant(self, turn: Team):
+    def refresh_en_passant(self, turn: Team) -> None:
 
         for row in ROW_VALUE_RANGE:
             for col in COL_VALUE_RANGE:
@@ -137,7 +141,8 @@ class ChessBoard:
                 if isinstance(chessman, Pawn) and chessman.get_team() == turn:
                     chessman.clear_en_passant()
 
-    def chessman_move(self, target_chessman, dest_pos):
+    def chessman_move(self, target_chessman: BaseChessman, dest_pos: "BoardPosType") \
+                      -> Tuple[Optional[SpecialMove], Optional[BaseChessman]]:
 
         killed_enemy = None
         origin_pos = target_chessman.get_pos()
@@ -213,14 +218,14 @@ class ChessBoard:
 
             return (None, killed_enemy)
 
-    def promotion(self, target_pawn, new_chessman_type):
+    def promotion(self, target_pawn: Pawn, new_chessman_type: "PromotionType") -> None:
         
         curr_pos = target_pawn.get_pos()
         new_chessman = new_chessman_type(curr_pos[0], curr_pos[1], target_pawn.get_team())
         new_chessman.set_moved()
         self.__board[curr_pos[0]][curr_pos[1]] = new_chessman
 
-    def peak_move(self, target_chessman, dest_pos):
+    def peak_move(self, target_chessman: BaseChessman, dest_pos: "BoardPosType") -> "ChessBoard":
 
         row, col = target_chessman.get_pos()
         copied_chess_board = deepcopy(self)

@@ -1,10 +1,11 @@
 import pygame
-
 from enum import Enum, auto
+from .game import ChessGame
 from .chessman import *
 from .board import *
 from ..const import *
 from ..gui_const import *
+from ..types import *
 
 
 class GuiChessmanState(Enum):
@@ -14,7 +15,7 @@ class GuiChessmanState(Enum):
 class GuiChessman(pygame.sprite.Sprite):
 
     @staticmethod
-    def repaint_chessmen(chess_game, chessman_bind):
+    def repaint_chessmen(chess_game: ChessGame, chessman_bind: "ChessmanBindType") -> None:
         for r in ROW_VALUE_RANGE:
             for c in COL_VALUE_RANGE:
                 chessman = chess_game.get_chessman(r, c)
@@ -23,7 +24,7 @@ class GuiChessman(pygame.sprite.Sprite):
                     chessman_bind[chessman].set_cell_x_y(c_x, c_y)  
 
     @staticmethod
-    def calc_cell_x_y(row, col, current_turn):
+    def calc_cell_x_y(row: int, col: str, current_turn: Team) -> "CellPosType":
 
         if current_turn == Team.BLACK:
             # (row, col) = (1, 'a') => (x, y) = (7, 0)
@@ -35,9 +36,9 @@ class GuiChessman(pygame.sprite.Sprite):
             return (COL_VALUE_RANGE.index(col), 7 - row + 1) 
 
     @staticmethod
-    def calc_row_col(cell_x, cell_y, current_turn):
+    def calc_row_col(cell_x: int, cell_y: int, current_turn: Team) -> "BoardPosType":
         
-        def int_to_letter(col_idx):
+        def int_to_letter(col_idx: int) -> str:
             if col_idx >= len(COL_VALUE_RANGE) or col_idx < 0: return "#" # error chars
             return COL_VALUE_RANGE[col_idx]
 
@@ -50,7 +51,7 @@ class GuiChessman(pygame.sprite.Sprite):
             # (row, col) = (8, 'h') <= (x, y) = (7, 0)
             return (8 - cell_y, int_to_letter(cell_x))
 
-    def __init__(self, cell_x: int, cell_y: int, team: Team, image):
+    def __init__(self, cell_x: int, cell_y: int, team: Team, image: pygame.Surface) -> None:
         
         pygame.sprite.Sprite.__init__(self)
 
@@ -68,27 +69,27 @@ class GuiChessman(pygame.sprite.Sprite):
 
         self.state = GuiChessmanState.DOWN
 
-    def click(self):
+    def click(self) -> None:
         
         if self.state == GuiChessmanState.DOWN: self.__up()
         else:                                   self.__down()
     
-    def __down(self):
+    def __down(self) -> None:
         if self.state == GuiChessmanState.UP:
             self.rect.y += 10
         self.state = GuiChessmanState.DOWN
 
-    def __up(self):
+    def __up(self) -> None:
         if self.state == GuiChessmanState.DOWN:
             self.rect.y -= 10
         self.state = GuiChessmanState.UP
 
-    def set_cell_x_y(self, cell_x, cell_y):
+    def set_cell_x_y(self, cell_x: int, cell_y: int) -> None:
         self.cell_x = cell_x
         self.cell_y = cell_y
 
         self.rect.x = INIT_X + cell_x * CELL_SIDE_LENGTH + 10
         self.rect.y = INIT_Y + cell_y * CELL_SIDE_LENGTH + 10
     
-    def get_cell_x_y(self):
+    def get_cell_x_y(self) -> "CellPosType":
         return (self.cell_x, self.cell_y)

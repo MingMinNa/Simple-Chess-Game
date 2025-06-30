@@ -1,7 +1,10 @@
 from enum import Enum, auto
+from typing import Optional
 from .board import *
 from .chessman import *
 from ..const import *
+from ..types import *
+
 
 class GameState(Enum):
     END = auto()
@@ -10,7 +13,7 @@ class GameState(Enum):
 
 class Record:
     
-    def __init__(self):
+    def __init__(self) -> None:
         # for captured chessman display
         self.__move_lst = list()        # (team, chessman_type_name, case, source_pos, dest_pos, killed_enemy_pos, is_check, is_checkmate)
         self.__promotion_info = dict()  # key: move_lst_index, value: chessman_type_name
@@ -19,13 +22,15 @@ class Record:
         self.__board_lst = list()       # (board_representation, white_long_castling, white_short_castling, black_long_castling, black_short_castling)
         self.__repetition_count = 0      
 
-    def add_move(self, team, case, chessman_type_name, source_pos, dest_pos, killed_enemy_pos = None, in_check = False, is_checkmate = False):
+    def add_move(self, team: Team, case: SpecialMove, chessman_type_name: str, 
+                 source_pos: "BoardPosType", dest_pos: "BoardPosType", killed_enemy_pos: Optional[BaseChessman] = None, 
+                 in_check: bool = False, is_checkmate: bool = False) -> None:
         self.__move_lst.append((team, case, chessman_type_name, source_pos, dest_pos, killed_enemy_pos, in_check, is_checkmate))
 
-    def add_promotion_info(self, chessman_type_name):
+    def add_promotion_info(self, chessman_type_name: str) -> None:
         self.__promotion_info[len(self.__move_lst) - 1] = chessman_type_name
 
-    def add_board(self, chess_board: ChessBoard):
+    def add_board(self, chess_board: ChessBoard) -> None:
         
         # white_long_castling, white_short_castling, black_long_castling, black_short_castling)
         long_short = [False, False, False, False]
@@ -70,7 +75,7 @@ class Record:
         self.__board_lst.append(board_representation)
 
     # long algebraic notation
-    def get_chess_notation(self):
+    def get_chess_notation(self) -> Tuple[int, "NotationType"]:
         name_abbr = {
             "King":   'K',
             "Queen":  'Q',
@@ -113,12 +118,12 @@ class Record:
             notations[round][team] = notation
         return round, notations
 
-    def get_repetitions(self):
+    def get_repetitions(self) -> int:
         return self.__repetition_count
 
 class ChessGame: 
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.__chess_board = ChessBoard()
         self.__current_turn = Team.WHITE
         self.__dead_white_count = dict()
@@ -143,7 +148,7 @@ class ChessGame:
 
         self.record_board()
 
-    def next_turn(self):
+    def next_turn(self) -> None:
 
         self.__chess_board.refresh_en_passant(self.get_current_turn())
         self.__current_turn = Team.BLACK if self.get_current_turn() == Team.WHITE else Team.WHITE
@@ -159,46 +164,46 @@ class ChessGame:
                 "Chessman Killed": False
             }
         
-    def get_current_turn(self):
+    def get_current_turn(self) -> Team:
         return self.__current_turn
 
-    def get_game_end(self):
+    def get_game_end(self) -> bool:
         return self.__game_end
     
-    def get_chessman(self, row, col):
+    def get_chessman(self, row: int, col: str) -> Optional[BaseChessman]:
         return self.__chess_board.get_chessman(row, col)
 
-    def get_entire_board(self):
+    def get_entire_board(self) -> "BoardDictType":
         return self.__chess_board.get_entire_board()
     
-    def get_winner(self):
+    def get_winner(self) -> Optional[Team]:
         return self.__winner
     
-    def get_record(self):
+    def get_record(self) -> Record:
         return self.__record
     
-    def get_valid_moves(self, target_chessman):
+    def get_valid_moves(self, target_chessman: BaseChessman) -> set["MoveType"]:
         return self.__chess_board.get_valid_moves(target_chessman)
     
-    def get_dead_chessmen(self):
+    def get_dead_chessmen(self) -> "DeadChessmenType":
         return {
             "White": self.__dead_white_count, 
             "Black": self.__dead_black_count
         }
     
-    def get_in_check(self):
+    def get_in_check(self) -> bool:
         return self.__in_check
 
-    def get_checkmate(self):
+    def get_checkmate(self) -> bool:
         return self.__checkmate
 
-    def get_draw(self):
+    def get_draw(self) -> bool:
         return self.__draw
 
-    def promotion(self, target_pawn, new_chessman_type):
+    def promotion(self, target_pawn: Pawn, new_chessman_type: "PromotionType") -> None:
         self.__chess_board.promotion(target_pawn, new_chessman_type)
 
-    def chessman_move(self, target_chessman, dest_pos):
+    def chessman_move(self, target_chessman: BaseChessman, dest_pos: "BoardPosType") -> Tuple[GameState, Optional[BaseChessman]]:
         source_pos = target_chessman.get_pos()
         case, killed_enemy = self.__chess_board.chessman_move(target_chessman, dest_pos)
         
@@ -231,22 +236,21 @@ class ChessGame:
                          is_checkmate = ChessBoard.is_board_checkmate(self.__chess_board, enemy_team))
         return ret_state, killed_enemy
     
-    def show_board(self):
+    def show_board(self) -> None:
         self.__chess_board.print_text_board()
 
-    def update_in_check(self):
+    def update_in_check(self) -> None:
         self.__in_check = ChessBoard.is_board_in_check(self.__chess_board, self.get_current_turn())
     
-    def update_checkmate(self):
+    def update_checkmate(self) -> None:
 
         if ChessBoard.is_board_checkmate(self.__chess_board, self.get_current_turn()):
             self.__checkmate = True
             self.__winner = Team.BLACK if self.get_current_turn() == Team.WHITE else Team.WHITE 
         else:
             self.__checkmate = False
-        return 
     
-    def update_draw(self):
+    def update_draw(self) -> None:
         
         self.__draw = False
 
@@ -267,11 +271,13 @@ class ChessGame:
             self.__draw = True
             return 
         
-    def record_move(self, team, case, chessman_type_name, source_pos, dest_pos, killed_enemy_pos = None, in_check = False, is_checkmate = False):
+    def record_move(self, team: Team, case: SpecialMove, chessman_type_name: str, 
+                    source_pos: "BoardPosType", dest_pos: "BoardPosType", killed_enemy_pos: Optional[BaseChessman] = None, 
+                    in_check: bool = False, is_checkmate: bool = False) -> None:
         self.__record.add_move(team, case, chessman_type_name, source_pos, dest_pos, killed_enemy_pos, in_check, is_checkmate)
 
-    def record_promotion_info(self, chessman_type_name):
+    def record_promotion_info(self, chessman_type_name: str) -> None:
         self.__record.add_promotion_info(chessman_type_name)
 
-    def record_board(self):
+    def record_board(self) -> None:
         self.__record.add_board(self.__chess_board)

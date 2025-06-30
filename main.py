@@ -1,9 +1,8 @@
 import pygame
-
 from ChessGame import *
-from ChessGame.gui import *
 
-def main():
+
+def main() -> None:
     init_pygame()
     while True:
         gui_state = main_screen_state()

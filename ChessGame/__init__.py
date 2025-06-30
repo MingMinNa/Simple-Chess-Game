@@ -1,4 +1,4 @@
 from .const import *
-from .component.chessman import *
-from .component.board import *
-from .component.game import *
+from .gui_const import *
+from .types import *
+from .gui import *
