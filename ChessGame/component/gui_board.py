@@ -4,7 +4,7 @@ from .board import *
 from .gui_chessman import *
 from ..const import *
 from ..gui_const import *
-from ..types import *
+from ..type_defs import *
 
 
 def draw_text(screen: pygame.Surface, text: str, 

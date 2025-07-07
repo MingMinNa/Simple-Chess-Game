@@ -7,7 +7,7 @@ from .gui_chessman import *
 from .gui_board import *
 from ..const import *
 from ..gui_const import *
-from ..types import *
+from ..type_defs import *
 
 
 class PanelChessman(pygame.sprite.Sprite):

@@ -1,4 +1,4 @@
 from .const import *
 from .gui_const import *
-from .types import *
+from .type_defs import *
 from .gui import *

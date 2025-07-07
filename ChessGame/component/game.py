@@ -3,7 +3,7 @@ from typing import Optional
 from .board import *
 from .chessman import *
 from ..const import *
-from ..types import *
+from ..type_defs import *
 
 
 class GameState(Enum):

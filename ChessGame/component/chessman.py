@@ -1,7 +1,7 @@
 from enum import Enum, auto
 from typing import override, Optional, Tuple, List
 from ..const import *
-from ..types import *
+from ..type_defs import *
 
 
 def check_valid_pos(pos: "BoardPosType") -> bool:

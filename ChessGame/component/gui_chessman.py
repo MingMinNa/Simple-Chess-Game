@@ -5,7 +5,7 @@ from .chessman import *
 from .board import *
 from ..const import *
 from ..gui_const import *
-from ..types import *
+from ..type_defs import *
 
 
 class GuiChessmanState(Enum):

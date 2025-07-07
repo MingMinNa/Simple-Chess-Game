@@ -3,7 +3,7 @@ from copy import deepcopy
 from typing import Optional
 from .chessman import *
 from ..const import *
-from ..types import *
+from ..type_defs import *
 
 
 class SpecialMove(Enum):
