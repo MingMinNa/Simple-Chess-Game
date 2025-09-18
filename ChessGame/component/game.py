@@ -1,3 +1,4 @@
+from __future__ import annotations
 from enum import Enum, auto
 from typing import Optional
 from .board import *
@@ -7,7 +8,7 @@ from ..type_defs import *
 
 
 class GameState(Enum):
-    END = auto()
+    END       = auto()
     NEXT_TURN = auto()
     PROMOTION = auto()
 
@@ -22,10 +23,22 @@ class Record:
         self.__board_lst = list()       # (board_representation, white_long_castling, white_short_castling, black_long_castling, black_short_castling)
         self.__repetition_count = 0      
 
-    def add_move(self, team: Team, case: SpecialMove, chessman_type_name: str, 
-                 source_pos: "BoardPosType", dest_pos: "BoardPosType", killed_enemy_pos: Optional[BaseChessman] = None, 
-                 in_check: bool = False, is_checkmate: bool = False) -> None:
-        self.__move_lst.append((team, case, chessman_type_name, source_pos, dest_pos, killed_enemy_pos, in_check, is_checkmate))
+    def add_move(
+            self, 
+            team               : Team, 
+            case               : SpecialMove, 
+            chessman_type_name : str, 
+            source_pos         : BoardPosType, 
+            dest_pos           : BoardPosType, 
+            killed_enemy_pos   : Optional[BaseChessman] = None, 
+            in_check           : bool = False, 
+            is_checkmate       : bool = False
+        ) -> None:
+        self.__move_lst.append((
+            team      , case        , chessman_type_name, 
+            source_pos, dest_pos    , killed_enemy_pos  , 
+            in_check  , is_checkmate
+        ))
 
     def add_promotion_info(self, chessman_type_name: str) -> None:
         self.__promotion_info[len(self.__move_lst) - 1] = chessman_type_name
@@ -75,7 +88,8 @@ class Record:
         self.__board_lst.append(board_representation)
 
     # long algebraic notation
-    def get_chess_notation(self) -> Tuple[int, "NotationType"]:
+    def get_chess_notation(self) -> Tuple[int, NotationType]:
+
         name_abbr = {
             "King":   'K',
             "Queen":  'Q',
@@ -84,9 +98,11 @@ class Record:
             "Knight": 'N',
             "Pawn":   '', # 'P' or ''
         }
+
         round = 0
         notations = dict()
         pos_to_str = lambda pos: pos[1] + str(pos[0])
+
         for i, move in enumerate(self.__move_lst):
             team, case, chessman_type_name, source_pos, dest_pos, killed_enemy_pos, in_check, is_checkmate = move
             source_pos_str, dest_pos_str = pos_to_str(source_pos), pos_to_str(dest_pos)
@@ -173,7 +189,7 @@ class ChessGame:
     def get_chessman(self, row: int, col: str) -> Optional[BaseChessman]:
         return self.__chess_board.get_chessman(row, col)
 
-    def get_entire_board(self) -> "BoardDictType":
+    def get_entire_board(self) -> BoardDictType:
         return self.__chess_board.get_entire_board()
     
     def get_winner(self) -> Optional[Team]:
@@ -182,10 +198,10 @@ class ChessGame:
     def get_record(self) -> Record:
         return self.__record
     
-    def get_valid_moves(self, target_chessman: BaseChessman) -> set["MoveType"]:
+    def get_valid_moves(self, target_chessman: BaseChessman) -> set[MoveType]:
         return self.__chess_board.get_valid_moves(target_chessman)
     
-    def get_dead_chessmen(self) -> "DeadChessmenType":
+    def get_dead_chessmen(self) -> DeadChessmenType:
         return {
             "White": self.__dead_white_count, 
             "Black": self.__dead_black_count
@@ -200,10 +216,20 @@ class ChessGame:
     def get_draw(self) -> bool:
         return self.__draw
 
-    def promotion(self, target_pawn: Pawn, new_chessman_type: "PromotionType") -> None:
+    def promotion(
+            self, 
+            target_pawn       : Pawn, 
+            new_chessman_type : PromotionType
+        ) -> None:
+
         self.__chess_board.promotion(target_pawn, new_chessman_type)
 
-    def chessman_move(self, target_chessman: BaseChessman, dest_pos: "BoardPosType") -> Tuple[GameState, Optional[BaseChessman]]:
+    def chessman_move(
+            self, 
+            target_chessman : BaseChessman, 
+            dest_pos        : BoardPosType
+        ) -> Tuple[GameState, Optional[BaseChessman]]:
+        
         source_pos = target_chessman.get_pos()
         case, killed_enemy = self.__chess_board.chessman_move(target_chessman, dest_pos)
         
@@ -230,10 +256,16 @@ class ChessGame:
             _, _ = self.__chess_board.chessman_move(self.get_chessman(dest_pos[0], 'h'), (dest_pos[0], 'f'))
 
         enemy_team = Team.BLACK if self.get_current_turn() == Team.WHITE else Team.WHITE
-        self.record_move(target_chessman.get_team(), case, type(target_chessman).__name__, source_pos, dest_pos, 
-                         killed_enemy_pos = None if killed_enemy is None else killed_enemy.get_pos(), \
-                         in_check = ChessBoard.is_board_in_check(self.__chess_board, enemy_team), \
-                         is_checkmate = ChessBoard.is_board_checkmate(self.__chess_board, enemy_team))
+        self.record_move(
+            target_chessman.get_team(), 
+            case, 
+            type(target_chessman).__name__, 
+            source_pos, 
+            dest_pos, 
+            killed_enemy_pos = None if killed_enemy is None else killed_enemy.get_pos(),
+            in_check = ChessBoard.is_board_in_check(self.__chess_board, enemy_team),
+            is_checkmate = ChessBoard.is_board_checkmate(self.__chess_board, enemy_team)
+        )
         return ret_state, killed_enemy
     
     def show_board(self) -> None:
@@ -271,10 +303,90 @@ class ChessGame:
             self.__draw = True
             return 
         
-    def record_move(self, team: Team, case: SpecialMove, chessman_type_name: str, 
-                    source_pos: "BoardPosType", dest_pos: "BoardPosType", killed_enemy_pos: Optional[BaseChessman] = None, 
-                    in_check: bool = False, is_checkmate: bool = False) -> None:
-        self.__record.add_move(team, case, chessman_type_name, source_pos, dest_pos, killed_enemy_pos, in_check, is_checkmate)
+        # 兵力不足 insufficient material draw
+
+        # [0]King, [1]Queen, [2]Rook, [3]Bishop_in_BOARDCELL_COLORS[0], [4]Bishop_in_BOARDCELL_COLORS[1], [5]Knight, [6]Pawn
+        chessman_count = {
+            Team.WHITE: ([0] * 7), 
+            Team.BLACK: ([0] * 7)
+        }
+        
+        for i, row in enumerate(ROW_VALUE_RANGE):
+            for j, col in enumerate(COL_VALUE_RANGE):
+                chessman = self.__chess_board.get_chessman(row, col)
+                
+                if chessman is None: continue
+
+                chessman_type  = type(chessman).__name__
+                chessman_team = chessman.get_team()
+                color_index = ((len(ROW_VALUE_RANGE) - 1 - i) + j) % 2
+
+                conditions = [
+                    lambda type_name: type_name == King.__name__,
+                    lambda type_name: type_name == Queen.__name__,
+                    lambda type_name: type_name == Rook.__name__,
+                    lambda type_name: type_name == Bishop.__name__ and color_index == 0,
+                    lambda type_name: type_name == Bishop.__name__ and color_index == 1,
+                    lambda type_name: type_name == Knight.__name__,
+                    lambda type_name: type_name == Pawn.__name__,
+                ]
+                
+                for k, cond in enumerate(conditions):
+                    if cond(chessman_type):
+                        chessman_count[chessman_team][k] += 1
+                        break
+
+        only_king = lambda count_list: count_list == [1, 0, 0, 0, 0, 0, 0]
+        only_king_and_knight = lambda count_list: count_list == [1, 0, 0, 0, 0, 1, 0]
+        only_king_and_bishop = lambda count_list: \
+            (count_list == [1, 0, 0, 1, 0, 0, 0]) or (count_list == [1, 0, 0, 0, 1, 0, 0])
+
+        ## 王 對 王 (K vs K)
+        if only_king(chessman_count[Team.BLACK]) and \
+           only_king(chessman_count[Team.WHITE]):
+            self.__draw = True
+            return
+
+        ## 王和主教 對 王 (K + B vs K)
+        if (only_king_and_bishop(chessman_count[Team.BLACK]) and only_king(chessman_count[Team.WHITE])) or \
+           (only_king_and_bishop(chessman_count[Team.WHITE]) and only_king(chessman_count[Team.BLACK])):
+            self.__draw = True
+            return
+
+        ## 王和騎士 對 王 (K + N vs K)
+        if (only_king_and_knight(chessman_count[Team.BLACK]) and only_king(chessman_count[Team.WHITE])) or \
+           (only_king_and_knight(chessman_count[Team.WHITE]) and only_king(chessman_count[Team.BLACK])):
+            self.__draw = True
+            return
+
+        ## 王和主教 對 王和主教，且雙方象位於同一色格子內 (K + B vs K + B, and the two bishops are on the same color cells)
+        if (chessman_count[Team.BLACK] == [1, 0, 0, 1, 0, 0, 0] and chessman_count[Team.WHITE] == [1, 0, 0, 0, 1, 0, 0]) or \
+           (chessman_count[Team.WHITE] == [1, 0, 0, 1, 0, 0, 0] and chessman_count[Team.BLACK] == [1, 0, 0, 0, 1, 0, 0]):
+            self.__draw = True
+            return
+
+    def record_move(
+            self, 
+            team               : Team, 
+            case               : SpecialMove, 
+            chessman_type_name : str, 
+            source_pos         : BoardPosType, 
+            dest_pos           : BoardPosType, 
+            killed_enemy_pos   : Optional[BaseChessman] = None, 
+            in_check           : bool = False, 
+            is_checkmate       : bool = False
+        ) -> None:
+
+        self.__record.add_move(
+            team, 
+            case, 
+            chessman_type_name, 
+            source_pos, 
+            dest_pos, 
+            killed_enemy_pos, 
+            in_check, 
+            is_checkmate
+        )
 
     def record_promotion_info(self, chessman_type_name: str) -> None:
         self.__record.add_promotion_info(chessman_type_name)

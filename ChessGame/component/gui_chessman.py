@@ -1,3 +1,4 @@
+from __future__ import annotations
 import pygame
 from enum import Enum, auto
 from .game import ChessGame
@@ -9,13 +10,13 @@ from ..type_defs import *
 
 
 class GuiChessmanState(Enum):
-    UP = auto()
+    UP   = auto()
     DOWN = auto()
 
 class GuiChessman(pygame.sprite.Sprite):
 
     @staticmethod
-    def repaint_chessmen(chess_game: ChessGame, chessman_bind: "ChessmanBindType") -> None:
+    def repaint_chessmen(chess_game: ChessGame, chessman_bind: ChessmanBindType) -> None:
         for r in ROW_VALUE_RANGE:
             for c in COL_VALUE_RANGE:
                 chessman = chess_game.get_chessman(r, c)
@@ -24,7 +25,7 @@ class GuiChessman(pygame.sprite.Sprite):
                     chessman_bind[chessman].set_cell_x_y(c_x, c_y)  
 
     @staticmethod
-    def calc_cell_x_y(row: int, col: str, current_turn: Team) -> "CellPosType":
+    def calc_cell_x_y(row: int, col: str, current_turn: Team) -> CellPosType:
 
         if current_turn == Team.BLACK:
             # (row, col) = (1, 'a') => (x, y) = (7, 0)
@@ -36,7 +37,7 @@ class GuiChessman(pygame.sprite.Sprite):
             return (COL_VALUE_RANGE.index(col), 7 - row + 1) 
 
     @staticmethod
-    def calc_row_col(cell_x: int, cell_y: int, current_turn: Team) -> "BoardPosType":
+    def calc_row_col(cell_x: int, cell_y: int, current_turn: Team) -> BoardPosType:
         
         def int_to_letter(col_idx: int) -> str:
             if col_idx >= len(COL_VALUE_RANGE) or col_idx < 0: return "#" # error chars
@@ -91,5 +92,5 @@ class GuiChessman(pygame.sprite.Sprite):
         self.rect.x = INIT_X + cell_x * CELL_SIDE_LENGTH + 10
         self.rect.y = INIT_Y + cell_y * CELL_SIDE_LENGTH + 10
     
-    def get_cell_x_y(self) -> "CellPosType":
+    def get_cell_x_y(self) -> CellPosType:
         return (self.cell_x, self.cell_y)

@@ -15,7 +15,7 @@
 <img src="./assets/image/display/display_promotion.png" alt="display_promotion.png" width="285" height="200">
 <img src="./assets/image/display/display_play.png" alt="display_play.png" width="285" height="200">
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;被吃記錄&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;結束面板   
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;吃子記錄&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;結束面板   
 <img src="./assets/image/display/display_captured.png" alt="display_captured.png" width="285" height="200">
 <img src="./assets/image/display/display_end.png" alt="display_end.png" width="285" height="200">
 
@@ -34,13 +34,15 @@
     ```bash
     python main.py
     ```
+
+## 待實作功能
+- [x] 雙人本地對戰（同一裝置上兩位玩家輪流操作）
+- [ ] 單人模式（與電腦對戰）
+
 ## 備註
-大部分的西洋棋規則均已實作，例如：王車易位、吃過路兵，升變等。但有些許和棋條件並無實作。
+大部分的西洋棋規則均已實作，例如：王車易位、吃過路兵，升變等。
 > 以下為已實作的和棋條件
 > * [x] 逼和
 > * [x] 三次重複局面
 > * [x] 五十步規則
->
-> 以下為未實作的和棋條件:
-> * [ ] 兵力不足
-> * [ ] 協定和局
+> * [x] 兵力不足

@@ -33,13 +33,15 @@ A simple chess game implemented with Python 3.12.9 and Pygame package.
     ```bash
     python main.py
     ```
+
+## Features to be implemented
+- [x] Pass-and-play mode
+- [ ] Play against computer AI (single-player mode)
+
 ## Note
-Most rules of chess, such as castling, en passant, and promotion, have been implemented, but a few draw conditions have not.
+Most rules of chess, such as castling, en passant, and promotion, have been implemented.
 > The following draw rules have been implemented in the game:
 > * [x] Stalemate
 > * [x] Threefold repetition rule
 > * [x] 50-move rule
->
-> The following draw rules have NOT been implemented:
-> * [ ] Insufficient material draw
-> * [ ] Draw by agreement
+> * [x] Insufficient material draw

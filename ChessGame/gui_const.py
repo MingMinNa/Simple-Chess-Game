@@ -9,7 +9,7 @@ INIT_X,       INIT_Y                  = 30, 30
 CHESSMAN_SIDE_LENGTH = 60
 CELL_SIDE_LENGTH     = 80
 
-FPS = 60
+FPS = 120
 
 # color 
 WHITE       = (255, 255, 255)

@@ -1,3 +1,4 @@
+from __future__ import annotations
 import pygame
 from .chessman import *
 from .board import *
@@ -7,11 +8,15 @@ from ..gui_const import *
 from ..type_defs import *
 
 
-def draw_text(screen: pygame.Surface, text: str, 
-              center_x: int,          center_y: int, 
-              fontSize: int,          Fontcolor: "ColorType", 
-              background_color: Optional["ColorType"] = None) \
-              -> pygame.Surface:
+def draw_text(
+        screen           : pygame.Surface, 
+        text             : str, 
+        center_x         : int,          
+        center_y         : int, 
+        fontSize         : int,          
+        Fontcolor        : ColorType, 
+        background_color : Optional[ColorType] = None
+    ) -> pygame.Surface:
 
     font = pygame.font.Font(None, fontSize)
     text_surface = font.render(f"{text}", True, Fontcolor)
@@ -24,25 +29,25 @@ def draw_text(screen: pygame.Surface, text: str,
 
 class GuiBoardCell(pygame.sprite.Sprite):
 
-    def __init__(self, cell_x: int, cell_y: int, color: "ColorType") -> None:
+    def __init__(self, cell_x: int, cell_y: int, color: ColorType) -> None:
+
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((CELL_SIDE_LENGTH, CELL_SIDE_LENGTH))
         self.image.fill(color)
+
         self.rect = self.image.get_rect()
-
-        pygame.draw.rect(self.image, BLACK, self.image.get_rect(), 1)
-
         self.rect.x = INIT_X + CELL_SIDE_LENGTH * cell_x
         self.rect.y = INIT_Y + CELL_SIDE_LENGTH * cell_y
+        pygame.draw.rect(self.image, BLACK, self.image.get_rect(), 1)
 
-    def set_color(self, color: "ColorType") -> None:
+    def set_color(self, color: ColorType) -> None:
         self.image.fill(color)
         pygame.draw.rect(self.image, BLACK, self.image.get_rect(), 1)
     
 class GuiBoard:
     
     @staticmethod
-    def get_click_cell(pos: "CoordinateType") -> "CellPosType":
+    def get_click_cell(pos: CoordinateType) -> CellPosType:
         return ((pos[0] - INIT_X) // CELL_SIDE_LENGTH, 
                 (pos[1] - INIT_Y) // CELL_SIDE_LENGTH)
 
@@ -52,20 +57,18 @@ class GuiBoard:
 
         for i in range(len(ROW_VALUE_RANGE)):
             self.board.append(list())
-            color_idx = i % 2
             for j in range(len(COL_VALUE_RANGE)):
-                cell = GuiBoardCell(j, i, BOARDCELL_COLORS[(color_idx + j) % 2])
+                cell = GuiBoardCell(j, i, BOARDCELL_COLORS[(i + j) % 2])
                 self.board[i].append(cell)
                 self.boardcell_sprite.add(cell)
 
     def refresh_board(self) -> None:
 
         for i in range(len(ROW_VALUE_RANGE)):
-            color_idx = i % 2
             for j in range(len(COL_VALUE_RANGE)):
-                self.board[i][j].set_color(BOARDCELL_COLORS[(color_idx + j) % 2])
+                self.board[i][j].set_color(BOARDCELL_COLORS[(i + j) % 2])
         
-    def paint_move_area(self, current_turn: Team, valid_moves: set["MoveType"]) -> None:
+    def paint_move_area(self, current_turn: Team, valid_moves: set[MoveType]) -> None:
         
         for action, pos in valid_moves:
             cell_x, cell_y = GuiChessman.calc_cell_x_y(pos[0], pos[1], current_turn)

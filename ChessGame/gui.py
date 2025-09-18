@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os
 import pygame
 from enum import Enum, auto
@@ -44,9 +45,13 @@ def load_assets() -> None:
         for type_name in CHESSMAN_TYPE_NAMES:
             chessman_images[team][type_name] = pygame.image.load(os.path.join(IMAGE_FOLDER, "chessman", f"{type_name.title()}_{team.name.lower()}.png")).convert()
 
-def gui_choose_chessman(chess_game: ChessGame, gui_board: GuiBoard, chessman_bind: "ChessmanBindType", 
-                        cell_x: int,           cell_y: int) \
-                        -> Tuple[GuiState, Optional[BaseChessman], Optional[set["MoveType"]]]:
+def gui_choose_chessman(
+        chess_game    : ChessGame, 
+        gui_board     : GuiBoard, 
+        chessman_bind : ChessmanBindType, 
+        cell_x        : int,
+        cell_y        : int
+    ) -> Tuple[GuiState, Optional[BaseChessman], Optional[set[MoveType]]]:
     
     row, col = GuiChessman.calc_row_col(cell_x, cell_y, chess_game.get_current_turn())
     chessman = chess_game.get_chessman(row, col)
@@ -60,11 +65,16 @@ def gui_choose_chessman(chess_game: ChessGame, gui_board: GuiBoard, chessman_bin
 
     return GuiState.MOVE_CHOOSE, chessman, valid_moves
 
-def gui_choose_moves(chess_game: ChessGame,           gui_board: GuiBoard, 
-                     chessman_bind: "ChessmanBindType", chessman_sprite: pygame.sprite.Group, 
-                     chosen_chessman: BaseChessman,   valid_moves: set["MoveType"], 
-                     cell_x: int,                     cell_y: int) \
-                     -> GuiState:
+def gui_choose_moves(
+        chess_game      : ChessGame,           
+        gui_board       : GuiBoard, 
+        chessman_bind   : ChessmanBindType, 
+        chessman_sprite : pygame.sprite.Group, 
+        chosen_chessman : BaseChessman,   
+        valid_moves     : set[MoveType], 
+        cell_x          : int,                     
+        cell_y          : int
+    ) -> GuiState:
     
     row, col = GuiChessman.calc_row_col(cell_x, cell_y, chess_game.get_current_turn())
     dest_pos = (row, col)
@@ -89,11 +99,15 @@ def gui_choose_moves(chess_game: ChessGame,           gui_board: GuiBoard,
     elif game_state == GameState.PROMOTION: return GuiState.PROMOTION
     else:                                   return GuiState.NEXT_TURN
 
-def gui_choose_promotion(promotion_panel: PromotionPanel,  mouse_pos: "CoordinateType", 
-                         pawn_chessman: Pawn,              chess_game: ChessGame, 
-                         gui_board: GuiBoard,              chessman_bind: "ChessmanBindType", 
-                         chessman_sprite: pygame.sprite.Group) \
-                         -> GuiState:
+def gui_choose_promotion(
+        promotion_panel : PromotionPanel,  
+        mouse_pos       : CoordinateType, 
+        pawn_chessman   : Pawn,              
+        chess_game      : ChessGame, 
+        gui_board       : GuiBoard,              
+        chessman_bind   : ChessmanBindType, 
+        chessman_sprite : pygame.sprite.Group
+    ) -> GuiState:
 
     chosen_chessman_type_name = promotion_panel.choose(mouse_pos)
 
@@ -115,10 +129,13 @@ def gui_choose_promotion(promotion_panel: PromotionPanel,  mouse_pos: "Coordinat
 
     return GuiState.NEXT_TURN
 
-def gui_game_end(chess_game: ChessGame,  record_panel: RecordPanel, 
-                 screen: pygame.Surface, gui_board: GuiBoard, 
-                 chessman_sprite: pygame.sprite.Group) \
-                 -> GuiState:
+def gui_game_end(
+        chess_game      : ChessGame,  
+        record_panel    : RecordPanel, 
+        screen          : pygame.Surface, 
+        gui_board       : GuiBoard, 
+        chessman_sprite : pygame.sprite.Group
+    ) -> GuiState:
 
     def refresh_end_screen(end_panel: GameEndPanel) -> None:
         # hide the end panel
@@ -169,7 +186,10 @@ def init_pygame() -> None:
     clock.tick(FPS)
     load_assets()
 
-def init_chessman_display(chess_game: ChessGame) -> Tuple["ChessmanBindType", pygame.sprite.Group]:
+def init_chessman_display(
+        chess_game: ChessGame
+    ) -> Tuple[ChessmanBindType, pygame.sprite.Group]:
+    
     chessman_bind = dict()
     chessman_sprite = pygame.sprite.Group()
 
@@ -236,9 +256,6 @@ def game_state() -> GuiState:
 
                 # click out of the board, nothing happens
                 if cell_x not in range(8) or cell_y not in range(8): continue
-                elif info_panel_display:
-                    if info_panel.is_in_exit_button(mouse_pos): return GuiState.MAIN
-                    else: continue
 
                 if gui_state == GuiState.CHESSMAN_CHOOSE:
                     gui_state, chosen_chessman, valid_moves = gui_choose_chessman(chess_game, gui_board, chessman_bind, cell_x, cell_y)
@@ -269,7 +286,14 @@ def game_state() -> GuiState:
                     chess_game.update_draw()
                     
                     record_panel.set_latest()
+            elif event.type == pygame.MOUSEBUTTONUP and event.button == pygame.BUTTON_LEFT:
+                mouse_pos = pygame.mouse.get_pos()
+                cell_x, cell_y = GuiBoard.get_click_cell(mouse_pos)
 
+                # click out of the board, nothing happens
+                if info_panel_display and info_panel.is_in_exit_button(mouse_pos):
+                    return GuiState.MAIN
+                
         draw_text(screen, f"Turn: {chess_game.get_current_turn().name.title()}", 100, 15, 30, GRAY, BACKGROUND_COLOR)
 
         if chess_game.get_checkmate():

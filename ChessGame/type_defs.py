@@ -1,3 +1,4 @@
+from __future__ import annotations
 import pygame
 from typing import Union, Dict, Tuple, Literal, Type, TypeAlias
 from .component import (chessman,  gui_chessman)
@@ -13,8 +14,8 @@ PromotionType: TypeAlias    = Union[
                                 Type[chessman.Queen], Type[chessman.Rook], 
                                 Type[chessman.Bishop], Type[chessman.Knight]
                             ]
-NotationType:     TypeAlias =    Dict[int, Dict[chessman.Team, str]] 
-DeadChessmenType: TypeAlias =    Dict[str, Dict[str, int]]
+NotationType:     TypeAlias = Dict[int, Dict[chessman.Team, str]] 
+DeadChessmenType: TypeAlias = Dict[str, Dict[str, int]]
 
 ColorType:        TypeAlias = Tuple[int, int, int]
 ChessmanBindType: TypeAlias =  Dict[chessman.BaseChessman, gui_chessman.GuiChessman]
